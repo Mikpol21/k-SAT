@@ -6,14 +6,18 @@ import Util.timed
 trait Literal{
     def variable: Var
     def negate: Literal
+    def isPositive: Boolean
+    def isNegative: Boolean = !isPositive
 }
 
 case class Positive(variable: Var) extends Literal {
     def negate: Literal = Negative(variable)
+    def isPositive: Boolean = true
     override def toString: String = variable.toString
 }
 case class Negative(variable: Var) extends Literal {
     def negate: Literal = Positive(variable)
+    def isPositive: Boolean = false
     override def toString: String = "not " + variable.toString
 }
 
