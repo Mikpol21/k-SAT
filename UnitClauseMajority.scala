@@ -16,8 +16,8 @@ object UnitClauseWithMajority extends SATSolver{
             else{
                 val variable = cnf.variables.head
                 val clauses = cnf.variablesToClauses.getOrElse(variable, Set.empty)
-                val positive = clauses.count(c => cnf.clauses(c).exists(l => l.isPositive))
-                val negative = clauses.count(c => cnf.clauses(c).exists(l => l.isNegative))
+                val positive = clauses.count(c => cnf.clauses(c).exists(_ == Positive(variable)))
+                val negative = clauses.count(c => cnf.clauses(c).exists(_ == Negative(variable)))
                 if(positive >= negative)
                     cnf.satisfy(Positive(variable))
                 else
