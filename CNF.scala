@@ -28,7 +28,7 @@ class CNF(val clauses: Array[Clause]){
     val variablesToClauses: MultiMap[Var, Int] = new HashMap[Var, Set[Int]] with MultiMap[Var, Int]
     val sizeToClauses: MultiMap[Int, Int] = new HashMap[Int, Set[Int]] with MultiMap[Int, Int]
 
-    timed("Setting up variables"){
+    timed("Setting up set of variables"){
         for(i <- 0 until m)
             for(literal <- clauses(i))
                 variables += literal.variable
@@ -46,15 +46,15 @@ class CNF(val clauses: Array[Clause]){
 
     final val n = variables.size
 
-    def getVariables: Set[Var] = variables
+
 
     def getUnitClauses: Set[Int] = sizeToClauses.getOrElse(1, Set.empty[Int])
 
 
-    def getVariableClauses(variable : Var): Set[Int] = variablesToClauses(variable)
+    def getVariableClauses(variable : Var): Set[Int] = variablesToClauses.getOrElse(variable, Set.empty[Int])
 
     def satisfy(literal: Literal): Unit = {
-        val clausesWithVar = variablesToClauses.getOrElse(literal.variable, Set.empty)
+        val clausesWithVar = getVariableClauses(literal.variable)
         for(clauseId <- clausesWithVar){
             if(clauses(clauseId) contains literal){
                 // removing mapping from variable to clause
@@ -64,7 +64,7 @@ class CNF(val clauses: Array[Clause]){
                 sizeToClauses.removeBinding(clauses(clauseId).length, clauseId)
                 clauses(clauseId) = List(Positive(-1)) // marking as satisfied
             }
-            else{
+            else if(clauses(clauseId) contains literal.negate){
                 val size = clauses(clauseId).length
                 sizeToClauses.removeBinding(size, clauseId)
                 clauses(clauseId) = clauses(clauseId).filter(_ != literal.negate)
@@ -93,6 +93,10 @@ class CNF(val clauses: Array[Clause]){
     }
 
     def isSatisfied: Boolean = !sizeToClauses.contains(0) || sizeToClauses(0).isEmpty
+
+    def numberOfZeroClauses: Int = sizeToClauses.getOrElse(0, Set.empty[Int]).size
+
+
 }
 
 
