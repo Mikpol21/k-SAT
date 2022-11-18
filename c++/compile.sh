@@ -1,0 +1,2 @@
+rm main
+make main
