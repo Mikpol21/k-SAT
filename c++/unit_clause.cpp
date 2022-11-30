@@ -49,9 +49,11 @@ public:
             */
             if (size_to_clauses[1].size() > 0)
             {
+
                 clause_id id = size_to_clauses[1][0];
-                assert(cnf->clauses[id].size() == 1);
+                // assert(cnf->clauses[id].size() == 1);
                 int x = cnf->clauses[id][0];
+                // cout << "forced: " << x << endl;
                 satisfy(x);
             }
             else
@@ -59,6 +61,7 @@ public:
                 var x = cnf->next_rand_var();
                 if (x == NOT_A_VAR)
                     break;
+                // cout << "free: " << x << endl;
                 if (coin_flip())
                     satisfy(x);
                 else

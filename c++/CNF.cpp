@@ -87,9 +87,10 @@ public:
     {
         while (current_permutation_index < N && vars_seen[vars_permutation[current_permutation_index]])
             current_permutation_index++;
+        // cout << "OHOHOHOHOHOHOH " << current_permutation_index << endl;
         if (current_permutation_index == N)
             return NOT_A_VAR;
-        return vars_permutation[current_permutation_index++];
+        return vars_permutation[current_permutation_index];
     }
     bool is_erased(var x)
     {
@@ -100,7 +101,7 @@ public:
         erase_var(x);
         for (clause_id id : var_to_clauses[lit(x)])
         {
-            assert(contains(clauses[id], x) || contains(clauses[id], -x));
+            // assert(contains(clauses[id], x) || contains(clauses[id], -x));
             clause &C = clauses[id];
             if (contains(C, x))
             {
@@ -117,8 +118,8 @@ public:
     {
         for (clause &C : clauses)
         {
-            assert(C.size() <= 1);
-            assert(C.size() == 0 || C[0] == SATISFIED);
+            // assert(C.size() <= 1);
+            // assert(C.size() == 0 || C[0] == SATISFIED);
             if (C.size() == 0)
                 return false;
         }

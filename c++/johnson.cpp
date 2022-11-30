@@ -1,14 +1,17 @@
 #include "CNF.cpp"
+#include "unit_clause.cpp"
 
-class Johnson_Heuristic : public SAT_solver
+class Johnson_Heuristic : public Unit_Clause
 {
-    CNF *cnf;
     vector<int> weights;
     int B = 0;
+    int cnt = 0;
     set<pair<int, var>> ordering;
+
+protected:
     void init(CNF *cnf)
     {
-        this->cnf = cnf;
+        Unit_Clause::init(cnf);
         B = 1 << (cnf->K);
         assignment.clear(), assignment.resize(cnf->N + 1);
         weights.resize(2 * cnf->N + 1);
@@ -27,8 +30,11 @@ class Johnson_Heuristic : public SAT_solver
         }
     }
 
-    void satisfy(int x)
+    inline void satisfy(int x)
     {
+        cnt++;
+        if (cnt % (cnf->N / 10) == 0)
+            cout << "\r\t" << float(cnt) / cnf->N * 100 << "%" << flush;
         assignment[abs(x)] = x > 0 ? true : false;
         for (clause_id id : cnf->var_to_clauses[abs(x)])
         {
@@ -50,8 +56,7 @@ class Johnson_Heuristic : public SAT_solver
         }
         ordering.erase({weights[cnf->N + x], x});
         ordering.erase({weights[cnf->N - x], -x});
-
-        cnf->satisfy(x);
+        Unit_Clause::satisfy(x);
     }
 
 public:
@@ -59,10 +64,18 @@ public:
     bool solve(CNF *cnf) override
     {
         init(cnf);
+        cout << "0%" << flush;
+        cnt = 0;
         while (!ordering.empty())
         {
             int x = ordering.rbegin()->second;
             satisfy(x);
+            while (size_to_clauses[1].size() > 0)
+            {
+                clause_id id = size_to_clauses[1][0];
+                x = cnf->clauses[id][0];
+                satisfy(x);
+            }
         }
         return cnf->is_satisfied();
     }
