@@ -29,7 +29,6 @@ int main(int argc, char *argv[])
     for (int i = 0; i < test_cases; i++)
     {
         CNF *cnf = generate_CNF(n, r, k);
-
         if (solver->solve(cnf))
         {
             satisfied++;
