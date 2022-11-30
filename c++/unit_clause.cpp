@@ -11,9 +11,10 @@ protected:
         assignment[abs(x)] = x > 0 ? true : false;
         for (clause_id id : cnf->var_to_clauses[abs(x)])
         {
-            fast_erase(size_to_clauses[cnf->clauses[id].size()], id);
-            if (contains(cnf->clauses[id], -x))
-                size_to_clauses[cnf->clauses[id].size() - 1].push_back(id);
+            clause &C = cnf->clauses[id];
+            fast_erase(size_to_clauses[C.size()], id);
+            if (contains(C, -x))
+                size_to_clauses[C.size() - 1].push_back(id);
         }
         cnf->satisfy(x);
     }
