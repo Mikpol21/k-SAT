@@ -40,7 +40,8 @@ protected:
 class Unit_Clause_With_Majority : public SAT_solver
 {
 public:
-    bool solve(CNF *cnf_2)
+    string name() override { return "Unit Clause With Majority"; }
+    bool solve(CNF *cnf_2) override
     {
         CNFwithMajority *cnf = new CNFwithMajority(cnf_2);
         for (int t = 0; t < cnf->N; t++)

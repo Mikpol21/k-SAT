@@ -1,8 +1,9 @@
 #pragma once
 #include "CNF.cpp"
 
-CNF *generate_CNF2(int n, int m, int k)
+vector<clause> generate_CNF(int n, float r, int k)
 {
+    int m = int(n * r);
     vector<clause> clauses;
     for (int i = 0; i < m; i++)
     {
@@ -16,10 +17,5 @@ CNF *generate_CNF2(int n, int m, int k)
         }
         clauses.push_back(C);
     }
-    return new CNF(n, m, k, clauses);
-}
-
-CNF *generate_CNF(int n, float r, int k)
-{
-    return generate_CNF2(n, (int)(n * r), k);
+    return clauses;
 }

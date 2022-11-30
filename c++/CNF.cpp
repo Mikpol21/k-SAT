@@ -139,6 +139,7 @@ protected:
 class SAT_solver
 {
 public:
+    virtual string name() { return "None"; }
     virtual bool solve(CNF *cnf)
     {
         return false;

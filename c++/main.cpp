@@ -8,7 +8,6 @@ SAT_solver *get_solver(string name)
 {
     if (name == "unit_clause" || name == "UC")
         return new Unit_Clause();
-
     if (name == "UCM")
         return new Unit_Clause_With_Majority();
     if (name == "Johnson")
@@ -22,23 +21,41 @@ int main(int argc, char *argv[])
     int k = 3;
     int n = atoi(argv[1]);
     float r = atof(argv[2]);
-    SAT_solver *solver = get_solver(argv[3]);
+    int m = r * n;
+    vector<SAT_solver *> solvers;
+    cout << argc << endl;
+    if (argc > 3)
+        solvers.push_back(get_solver(argv[3]));
+    else
+    {
+        solvers.push_back(get_solver("UC"));
+        solvers.push_back(get_solver("UCM"));
+        solvers.push_back(get_solver("Johnson"));
+    }
+    map<string, int> satisfied;
     int test_cases = 100;
-    int satisfied = 0;
-
     for (int i = 0; i < test_cases; i++)
     {
-        CNF *cnf = generate_CNF(n, r, k);
-
-        if (solver->solve(cnf))
+        vector<clause> clauses = generate_CNF(n, r, k);
+        printf("test case %d\n", i);
+        for (SAT_solver *solver : solvers)
         {
-            satisfied++;
-            printf("case: %d satisfied\n", i + 1);
+            cout << "\t";
+            CNF *cnf = new CNF(n, m, k, clauses);
+            if (solver->solve(cnf))
+            {
+                satisfied[solver->name()]++;
+                cout << solver->name() << ": satisfied\n";
+            }
+            else
+                cout << solver->name() << ": not satisfied\n";
+            delete cnf;
         }
-        else
-            printf("case: %d not satisfied\n", i + 1);
-        delete cnf;
     }
-    cout << float(satisfied) / float(test_cases) << endl;
+    for (SAT_solver *solver : solvers)
+    {
+        float ratio = (float)satisfied[solver->name()] / (float)test_cases;
+        cout << solver->name() << ": " << ratio << endl;
+    }
     return 0;
 }

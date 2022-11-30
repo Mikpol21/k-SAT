@@ -4,7 +4,8 @@
 class Unit_Clause : public SAT_solver
 {
 public:
-    bool solve(CNF *cnf)
+    string name() override { return "Unit Clause"; }
+    bool solve(CNF *cnf) override
     {
         for (int t = 0; t < cnf->N; t++)
         {

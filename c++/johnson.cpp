@@ -61,7 +61,8 @@ protected:
 class Johnson_Heuristic : public SAT_solver
 {
 public:
-    bool solve(CNF *cnf)
+    string name() override { return "Johnson Heuristic"; }
+    bool solve(CNF *cnf) override
     {
         Johnson_CNF *cnf_2 = new Johnson_CNF(cnf);
         for (int t = 0; t < cnf->N; t++)
