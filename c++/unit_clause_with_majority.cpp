@@ -1,71 +1,72 @@
 #pragma once
 #include "CNF.cpp"
+#include "unit_clause.cpp"
 
-class CNFwithMajority : public CNF
+class Unit_Clause_With_Majority : public Unit_Clause
 {
-public:
     vector<int> positives, negatives;
-    CNFwithMajority(CNF *cnf) : CNF(cnf->N, cnf->M, cnf->K, cnf->clauses)
+
+protected:
+    void init(CNF *cnf)
     {
-        positives.resize(N + 1);
-        negatives.resize(N + 1);
-        for (int i = 1; i <= N; i++)
+        Unit_Clause::init(cnf);
+        positives.clear(), negatives.clear();
+        for (int i = 0; i <= cnf->N; i++)
+            positives.push_back(0), negatives.push_back(0);
+        for (int id = 0; id < cnf->M; id++)
         {
-            positives[i] = 0;
-            negatives[i] = 0;
-        }
-        for (int i = 0; i < M; i++)
-        {
-            clause &C = clauses[i];
-            for (int j = 0; j < C.size(); j++)
+            clause &C = cnf->clauses[id];
+            for (int x : C)
             {
-                if (C[j] > 0)
-                    positives[C[j]]++;
+                if (x > 0)
+                    positives[x]++;
                 else
-                    negatives[-C[j]]++;
+                    negatives[-x]++;
             }
         }
     }
 
-protected:
-    inline void on_clause_erase(clause_id id, var x)
+    void satisfy(int x)
     {
-        if (x > 0)
-            positives[x]--;
-        else
-            negatives[-x]--;
+        for (clause_id id : cnf->var_to_clauses[abs(x)])
+        {
+            clause &C = cnf->clauses[id];
+            for (int y : C)
+            {
+                if (y > 0)
+                    positives[y]--;
+                else
+                    negatives[-y]--;
+            }
+        }
+        Unit_Clause::satisfy(x);
     }
-};
 
-class Unit_Clause_With_Majority : public SAT_solver
-{
 public:
     string name() override { return "Unit Clause With Majority"; }
-    bool solve(CNF *cnf_2) override
+    bool solve(CNF *cnf) override
     {
-        CNFwithMajority *cnf = new CNFwithMajority(cnf_2);
-        for (int t = 0; t < cnf->N; t++)
+        init(cnf);
+        for (int i = 0; i < cnf->N; i++)
         {
-            clause_id id = cnf->get_unit_clause();
-            if (id != NOT_A_CLAUSE)
+            if (size_to_clauses[1].size() > 0)
             {
-                var x = cnf->clauses[id][0];
-                cnf->satisfy(x);
+                clause_id id = size_to_clauses[1][0];
+                assert(cnf->clauses[id].size() == 1);
+                int x = cnf->clauses[id][0];
+                satisfy(x);
             }
             else
             {
-                var x = cnf->get_any_var();
+                var x = cnf->next_rand_var();
                 if (x == NOT_A_VAR)
                     break;
-                if (cnf->positives[x] >= cnf->negatives[x])
-                    cnf->satisfy(x);
+                if (positives[x] >= negatives[x])
+                    satisfy(x);
                 else
-                    cnf->satisfy(-x);
+                    satisfy(-x);
             }
-            // cnf->print();
         }
-        bool result = cnf->is_satisfied();
-        delete cnf;
-        return result;
+        return size_to_clauses[0].size() == 0;
     }
 };

@@ -3,30 +3,67 @@
 
 class Unit_Clause : public SAT_solver
 {
+protected:
+    vector<vector<clause_id>> size_to_clauses;
+    CNF *cnf;
+    void satisfy(int x)
+    {
+        assignment[abs(x)] = x > 0 ? true : false;
+        for (clause_id id : cnf->var_to_clauses[abs(x)])
+        {
+            fast_erase(size_to_clauses[cnf->clauses[id].size()], id);
+            if (contains(cnf->clauses[id], -x))
+                size_to_clauses[cnf->clauses[id].size() - 1].push_back(id);
+        }
+        cnf->satisfy(x);
+    }
+
+    void init(CNF *cnf)
+    {
+        this->cnf = cnf;
+        assignment.clear();
+        assignment.resize(cnf->N + 1);
+        size_to_clauses.clear();
+        for (int i = 0; i <= cnf->K; i++)
+            size_to_clauses.push_back(vector<clause_id>());
+        for (int i = 0; i < cnf->M; i++)
+            size_to_clauses[cnf->K].push_back(i);
+    }
+
 public:
     string name() override { return "Unit Clause"; }
+    vector<bool> get_assignement() { return assignment; }
+
     bool solve(CNF *cnf) override
     {
-        for (int t = 0; t < cnf->N; t++)
+        init(cnf);
+        for (int i = 0; i < cnf->N; i++)
         {
-            clause_id id = cnf->get_unit_clause();
-            if (id != NOT_A_CLAUSE)
+            /*
+            cnf->print();
+            cout << "Size to clauses\n";
+            print_vec(size_to_clauses);
+            cout << "Var to clauses\n";
+            print_vec(cnf->var_to_clauses);
+            */
+            if (size_to_clauses[1].size() > 0)
             {
-                var x = cnf->clauses[id][0];
-                cnf->satisfy(x);
+                clause_id id = size_to_clauses[1][0];
+                assert(cnf->clauses[id].size() == 1);
+                int x = cnf->clauses[id][0];
+                satisfy(x);
             }
             else
             {
-                var x = cnf->get_any_var();
+                var x = cnf->next_rand_var();
                 if (x == NOT_A_VAR)
                     break;
                 if (coin_flip())
-                    cnf->satisfy(x);
+                    satisfy(x);
                 else
-                    cnf->satisfy(-x);
+                    satisfy(-x);
             }
-            // cnf->print();
         }
-        return cnf->is_satisfied();
+        return size_to_clauses[0].size() == 0;
     }
 };

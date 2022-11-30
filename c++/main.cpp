@@ -15,6 +15,24 @@ SAT_solver *get_solver(string name)
     return nullptr;
 }
 
+bool satisfies(vector<clause> const clauses, vector<bool> const assignment)
+{
+    for (clause C : clauses)
+    {
+        bool satisfied = false;
+        for (int x : C)
+        {
+            if (x > 0 && assignment[x])
+                satisfied = true;
+            if (x < 0 && !assignment[-x])
+                satisfied = true;
+        }
+        if (!satisfied)
+            return false;
+    }
+    return true;
+}
+
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
@@ -45,6 +63,7 @@ int main(int argc, char *argv[])
             if (solver->solve(cnf))
             {
                 satisfied[solver->name()]++;
+                assert(satisfies(clauses, solver->assignment));
                 cout << solver->name() << ": satisfied\n";
             }
             else

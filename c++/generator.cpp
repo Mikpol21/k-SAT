@@ -11,7 +11,7 @@ vector<clause> generate_CNF(int n, float r, int k)
         for (int j = 0; j < k; j++)
         {
             var variable = rand() % n + 1;
-            while (contains(C, -variable) || contains(C, -variable))
+            while (contains(C, variable) || contains(C, -variable))
                 variable = rand() % n + 1;
             C.push_back(rand() % 2 ? variable : -variable);
         }
