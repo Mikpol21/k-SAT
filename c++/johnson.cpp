@@ -38,8 +38,9 @@ public:
             x = Q.top().second;
             Q.pop();
         }
-        if (variables.find(lit(x)) != variables.end())
+        if (variables.find(lit(x)) == variables.end())
             return NOT_A_VAR;
+
         return x;
     }
 

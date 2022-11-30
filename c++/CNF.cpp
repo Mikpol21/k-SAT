@@ -130,10 +130,10 @@ public:
     }
 
 protected:
-    inline void on_clause_erase(clause_id id) {}
-    inline void on_clause_erase(clause_id id, var x) {}
-    inline void on_clause_modified(clause_id id) {}
-    inline void on_clause_modified(clause_id id, var x) {}
+    virtual inline void on_clause_erase(clause_id id) {}
+    virtual inline void on_clause_erase(clause_id id, var x) {}
+    virtual inline void on_clause_modified(clause_id id) {}
+    virtual inline void on_clause_modified(clause_id id, var x) {}
 };
 
 class SAT_solver

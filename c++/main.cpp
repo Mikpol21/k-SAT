@@ -36,9 +36,14 @@ int main(int argc, char *argv[])
     int test_cases = 100;
     for (int i = 0; i < test_cases; i++)
     {
+<<<<<<< HEAD
         vector<clause> clauses = generate_CNF(n, r, k);
         printf("test case %d\n", i);
         for (SAT_solver *solver : solvers)
+=======
+        CNF *cnf = generate_CNF(n, r, k);
+        if (solver->solve(cnf))
+>>>>>>> 23a46f2b3b39bd5f229ebbb0ccc02c7c69b5c1fa
         {
             cout << "\t";
             CNF *cnf = new CNF(n, m, k, clauses);
