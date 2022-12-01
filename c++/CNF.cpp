@@ -17,10 +17,11 @@ bool coin_flip()
 
 void fast_erase(clause &C, int x)
 {
-    int last = C.size() - 1;
+
     for (int i = 0; i < C.size(); i++)
         if (C[i] == x)
         {
+            int last = C.size() - 1;
             int tmp = C[last];
             C[last] = C[i];
             C[i] = tmp;
@@ -45,6 +46,24 @@ bool contains(clause &C, int x)
         if (C[i] == x)
             return true;
     return false;
+}
+
+bool satisfies(vector<clause> const clauses, vector<bool> const assignment)
+{
+    for (clause C : clauses)
+    {
+        bool satisfied = false;
+        for (int x : C)
+        {
+            if (x > 0 && assignment[x])
+                satisfied = true;
+            if (x < 0 && !assignment[-x])
+                satisfied = true;
+        }
+        if (!satisfied)
+            return false;
+    }
+    return true;
 }
 
 class CNF
