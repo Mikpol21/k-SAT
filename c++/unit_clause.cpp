@@ -4,19 +4,43 @@
 class Unit_Clause : public SAT_solver
 {
 protected:
-    vector<vector<clause_id>> size_to_clauses;
+    queue<clause_id> unit_clauses;
+    vector<bool> erased_clauses;
     CNF *cnf;
     void satisfy(int x)
     {
+        if (cnf->is_erased(x))
+            return;
         assignment[abs(x)] = x > 0 ? true : false;
         for (clause_id id : cnf->var_to_clauses[abs(x)])
         {
             clause &C = cnf->clauses[id];
-            fast_erase(size_to_clauses[C.size()], id);
-            if (contains(C, -x))
-                size_to_clauses[C.size() - 1].push_back(id);
+            if (contains(C, x))
+                erased_clauses[id] = true;
+            else
+            {
+                if (C.size() == 2)
+                    unit_clauses.push(id);
+                if (C.size() == 1)
+                    erased_clauses[id] = true;
+            }
         }
         cnf->satisfy(x);
+    }
+
+    clause_id get_unit_clause()
+    {
+        while (!unit_clauses.empty() && erased_clauses[unit_clauses.front()])
+        {
+            assert(cnf->clauses[unit_clauses.front()].size() <= 1);
+            unit_clauses.pop();
+        }
+        if (unit_clauses.empty())
+            return NOT_A_CLAUSE;
+        clause_id id = unit_clauses.front();
+        erased_clauses[id] = true;
+        unit_clauses.pop();
+        return id;
     }
 
     void init(CNF *cnf)
@@ -24,11 +48,9 @@ protected:
         this->cnf = cnf;
         assignment.clear();
         assignment.resize(cnf->N + 1);
-        size_to_clauses.clear();
-        for (int i = 0; i <= cnf->K; i++)
-            size_to_clauses.push_back(vector<clause_id>());
+        erased_clauses.resize(cnf->M);
         for (int i = 0; i < cnf->M; i++)
-            size_to_clauses[cnf->K].push_back(i);
+            erased_clauses[i] = false;
     }
 
 public:
@@ -47,27 +69,21 @@ public:
             cout << "Var to clauses\n";
             print_vec(cnf->var_to_clauses);
             */
-            if (size_to_clauses[1].size() > 0)
-            {
-
-                clause_id id = size_to_clauses[1][0];
-                // assert(cnf->clauses[id].size() == 1);
-                int x = cnf->clauses[id][0];
-                // cout << "forced: " << x << endl;
-                satisfy(x);
-            }
+            int id = get_unit_clause();
+            if (id != NOT_A_CLAUSE)
+                satisfy(cnf->clauses[id][0]);
             else
             {
                 var x = cnf->next_rand_var();
+                // cout << "satisfying " << x << endl;
                 if (x == NOT_A_VAR)
                     break;
-                // cout << "free: " << x << endl;
                 if (coin_flip())
                     satisfy(x);
                 else
                     satisfy(-x);
             }
         }
-        return size_to_clauses[0].size() == 0;
+        return cnf->is_satisfied();
     }
 };

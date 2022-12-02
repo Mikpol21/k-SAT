@@ -132,7 +132,9 @@ public:
             else
                 fast_erase(C, -x);
         }
+        var_to_clauses[lit(x)].clear();
     }
+    int not_satisfied = 0;
     bool is_satisfied()
     {
         for (clause &C : clauses)
@@ -140,9 +142,10 @@ public:
             // assert(C.size() <= 1);
             // assert(C.size() == 0 || C[0] == SATISFIED);
             if (C.size() == 0)
-                return false;
+                not_satisfied++;
         }
-        return true;
+        // cout << "Found " << not_satisfied << " not satisfied clauses" << endl;
+        return not_satisfied == 0;
     }
     void print()
     {

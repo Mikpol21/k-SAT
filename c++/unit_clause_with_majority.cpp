@@ -49,13 +49,9 @@ public:
         init(cnf);
         for (int i = 0; i < cnf->N; i++)
         {
-            if (size_to_clauses[1].size() > 0)
-            {
-                clause_id id = size_to_clauses[1][0];
-                assert(cnf->clauses[id].size() == 1);
-                int x = cnf->clauses[id][0];
-                satisfy(x);
-            }
+            int id = get_unit_clause();
+            if (id != NOT_A_CLAUSE)
+                satisfy(cnf->clauses[id][0]);
             else
             {
                 var x = cnf->next_rand_var();
@@ -67,6 +63,6 @@ public:
                     satisfy(-x);
             }
         }
-        return size_to_clauses[0].size() == 0;
+        return cnf->is_satisfied();
     }
 };

@@ -53,6 +53,25 @@ void print_progress(double percentage)
     fflush(stdout);
 }
 
+void print_stats(map<string, int> &satisfied,
+                 map<string, int> &unsat_clauses,
+                 vector<SAT_solver *> &solvers,
+                 int test_cases)
+{
+    cout << "Prob of satisfying a formula" << endl;
+    for (SAT_solver *solver : solvers)
+    {
+        float ratio = (float)satisfied[solver->name()] / (float)test_cases;
+        cout << "  " << solver->name() << ": " << ratio << endl;
+    }
+    cout << "Average number of empty clauses" << endl;
+    for (SAT_solver *solver : solvers)
+    {
+        float ratio = (float)unsat_clauses[solver->name()] / (float)(test_cases - satisfied[solver->name()]);
+        cout << "  " << solver->name() << ": " << ratio << endl;
+    }
+}
+
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
@@ -73,6 +92,7 @@ int main(int argc, char *argv[])
         solvers.push_back(get_solver("WalkSAT"));
     }
     map<string, int> satisfied;
+    map<string, int> unsat_clauses;
     cout << "Solving " << k << "-SAT"
          << " on " << test_cases << " test cases using:" << endl;
     for (SAT_solver *solver : solvers)
@@ -90,19 +110,14 @@ int main(int argc, char *argv[])
             {
                 satisfied[solver->name()]++;
                 assert(satisfies(clauses, solver->assignment));
-                // cout << solver->name() << ": satisfied\n";
             }
             else
-                // cout << solver->name() << ": not satisfied\n";
-                delete cnf;
+                unsat_clauses[solver->name()] += cnf->not_satisfied;
+            delete cnf;
             print_progress((i + 1) / (float)test_cases);
         }
     }
     cout << endl;
-    for (SAT_solver *solver : solvers)
-    {
-        float ratio = (float)satisfied[solver->name()] / (float)test_cases;
-        cout << solver->name() << ": " << ratio << endl;
-    }
+    print_stats(satisfied, unsat_clauses, solvers, test_cases);
     return 0;
 }

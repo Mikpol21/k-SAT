@@ -32,9 +32,6 @@ protected:
 
     inline void satisfy(int x)
     {
-        cnt++;
-        if (cnt % (cnf->N / 10) == 0)
-            cout << "\r\t" << float(cnt) / cnf->N * 100 << "%" << flush;
         assignment[abs(x)] = x > 0 ? true : false;
         for (clause_id id : cnf->var_to_clauses[abs(x)])
         {
@@ -64,16 +61,17 @@ public:
     bool solve(CNF *cnf) override
     {
         init(cnf);
-        cout << "0%" << flush;
         cnt = 0;
-        while (!ordering.empty())
+        for (int i = 0; i < cnf->N; i++)
         {
-            int x = ordering.rbegin()->second;
-            satisfy(x);
-            while (size_to_clauses[1].size() > 0)
+            clause_id id = id = get_unit_clause();
+            if (id != NOT_A_CLAUSE)
+                satisfy(cnf->clauses[id][0]);
+            else
             {
-                clause_id id = size_to_clauses[1][0];
-                x = cnf->clauses[id][0];
+                if (ordering.empty())
+                    break;
+                int x = ordering.rbegin()->second;
                 satisfy(x);
             }
         }
