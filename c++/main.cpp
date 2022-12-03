@@ -4,10 +4,9 @@
 #include "johnson.cpp"
 #include "generator.cpp"
 #include "walksat.cpp"
+#include <chrono>
 using namespace std;
-#define ESC “x1b”
-#define CSI “x1b[”
-using namespace std::chrono_literals;
+using namespace std::chrono;
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
 
@@ -55,6 +54,7 @@ void print_progress(double percentage)
 
 void print_stats(map<string, int> &satisfied,
                  map<string, int> &unsat_clauses,
+                 map<string, time_t> &times,
                  vector<SAT_solver *> &solvers,
                  int test_cases)
 {
@@ -70,6 +70,12 @@ void print_stats(map<string, int> &satisfied,
         float ratio = (float)unsat_clauses[solver->name()] / (float)(test_cases - satisfied[solver->name()]);
         cout << "  " << solver->name() << ": " << ratio << endl;
     }
+    cout << "Average execution time" << endl;
+    for (SAT_solver *solver : solvers)
+    {
+        float ratio = (float)times[solver->name()] / (float)test_cases;
+        cout << "  " << solver->name() << ": " << ratio << "ms" << endl;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -81,7 +87,6 @@ int main(int argc, char *argv[])
     float r = atof(argv[2]);
     int m = r * n;
     vector<SAT_solver *> solvers;
-    cout << argc << endl;
     if (argc > 3)
         solvers.push_back(get_solver(argv[3]));
     else
@@ -93,11 +98,11 @@ int main(int argc, char *argv[])
     }
     map<string, int> satisfied;
     map<string, int> unsat_clauses;
+    map<string, time_t> times;
     cout << "Solving " << k << "-SAT"
          << " on " << test_cases << " test cases using:" << endl;
     for (SAT_solver *solver : solvers)
         cout << "  - " << solver->name() << endl;
-    cout << endl;
     for (int i = 0; i < test_cases; i++)
     {
         vector<clause> clauses = generate_CNF(n, r, k);
@@ -106,18 +111,22 @@ int main(int argc, char *argv[])
         {
             cout << "\t";
             CNF *cnf = new CNF(n, m, k, clauses);
-            if (solver->solve(cnf))
+            auto t1 = high_resolution_clock::now();
+            bool result = solver->solve(cnf);
+            auto t2 = high_resolution_clock::now();
+            if (result)
             {
                 satisfied[solver->name()]++;
                 assert(satisfies(clauses, solver->assignment));
             }
             else
                 unsat_clauses[solver->name()] += cnf->not_satisfied;
+            times[solver->name()] += duration_cast<milliseconds>(t2 - t1).count();
             delete cnf;
             print_progress((i + 1) / (float)test_cases);
         }
     }
     cout << endl;
-    print_stats(satisfied, unsat_clauses, solvers, test_cases);
+    print_stats(satisfied, unsat_clauses, times, solvers, test_cases);
     return 0;
 }

@@ -31,10 +31,7 @@ protected:
     clause_id get_unit_clause()
     {
         while (!unit_clauses.empty() && erased_clauses[unit_clauses.front()])
-        {
-            assert(cnf->clauses[unit_clauses.front()].size() <= 1);
             unit_clauses.pop();
-        }
         if (unit_clauses.empty())
             return NOT_A_CLAUSE;
         clause_id id = unit_clauses.front();
