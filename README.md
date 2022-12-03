@@ -1,6 +1,6 @@
 # k-SAT
 
-This repository contains a framework for testing effectivness of probabilistic algorithms solving k-SAT problem.
+This repository contains a framework for testing the effectivness of heuristics solving k-SAT problem.
 
 ## Algorithms
 

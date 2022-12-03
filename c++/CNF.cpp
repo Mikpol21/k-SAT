@@ -1,10 +1,12 @@
 #pragma once
 #include <bits/stdc++.h>
+#include <iostream>
 using namespace std;
 
 #define lit(x) abs(x)
 #define NOT_A_CLAUSE -1
 #define NOT_A_VAR 0
+#define SATISFIED 0
 typedef vector<int> clause;
 typedef int clause_id;
 typedef int var;
@@ -16,15 +18,27 @@ bool coin_flip()
 
 void fast_erase(clause &C, int x)
 {
-    int last = C.size() - 1;
+
     for (int i = 0; i < C.size(); i++)
         if (C[i] == x)
         {
+            int last = C.size() - 1;
             int tmp = C[last];
             C[last] = C[i];
             C[i] = tmp;
             C.pop_back();
         }
+}
+
+void print_vec(vector<vector<int>> &V)
+{
+    for (int i = 0; i < V.size(); i++)
+    {
+        cout << i << ": ";
+        for (int x : V[i])
+            cout << x << " ";
+        cout << endl;
+    }
 }
 
 bool contains(clause &C, int x)
@@ -35,80 +49,105 @@ bool contains(clause &C, int x)
     return false;
 }
 
+bool satisfies(vector<clause> const clauses, vector<bool> const assignment)
+{
+    for (clause C : clauses)
+    {
+        bool satisfied = false;
+        for (int x : C)
+        {
+            if (x > 0 && assignment[x])
+                satisfied = true;
+            if (x < 0 && !assignment[-x])
+                satisfied = true;
+        }
+        if (!satisfied)
+            return false;
+    }
+    return true;
+}
+
 class CNF
 {
+    vector<bool> vars_seen;
+    vector<int> vars_permutation;
+    int current_permutation_index = 0;
+
 public:
     int N, M, K; // N - vars, M - clauses
     vector<clause> clauses;
-    set<var> variables;
-    vector<set<clause_id>> size_to_clauses;
     vector<vector<clause_id>> var_to_clauses;
-    CNF(int n, int m, int k, vector<clause> clauses)
+    CNF(int N, int M, int K, vector<clause> clauses)
     {
-        N = n, M = m, K = k;
-        for (int i = 1; i <= n; i++)
-            variables.insert(i);
-
-        size_to_clauses.resize(K + 1);
-        var_to_clauses.resize(N + 1);
+        this->N = N;
+        this->M = M;
+        this->K = K;
         this->clauses = clauses;
+        for (int i = 0; i <= N; i++)
+            vars_seen.push_back(0);
+        for (int i = 1; i <= N; i++)
+            vars_permutation.push_back(i);
+        random_shuffle(vars_permutation.begin(), vars_permutation.end());
+        var_to_clauses.resize(N + 1);
+        for (int i = 1; i <= N; i++)
+            var_to_clauses[i] = vector<clause_id>();
         for (int i = 0; i < M; i++)
         {
             clause &C = clauses[i];
-            size_to_clauses[C.size()].insert(i);
-            for (int j = 0; j < C.size(); j++)
-                var_to_clauses[lit(C[j])].push_back(i);
+            for (var x : C)
+                var_to_clauses[abs(x)].push_back(i);
         }
     }
-
-    void satisfy(var x)
+    void erase_var(int x)
     {
-        if (x == 0)
-            return;
-        variables.erase(abs(x));
-        for (clause_id id : var_to_clauses[abs(x)])
+        x = abs(x);
+        vars_seen[x] = 1;
+    }
+    int next_rand_var()
+    {
+        while (current_permutation_index < N && vars_seen[vars_permutation[current_permutation_index]])
+            current_permutation_index++;
+        // cout << "OHOHOHOHOHOHOH " << current_permutation_index << endl;
+        if (current_permutation_index == N)
+            return NOT_A_VAR;
+        return vars_permutation[current_permutation_index];
+    }
+    bool is_erased(var x)
+    {
+        return vars_seen[abs(x)];
+    }
+    void satisfy(int x)
+    {
+        erase_var(x);
+        for (clause_id id : var_to_clauses[lit(x)])
         {
+            // assert(contains(clauses[id], x) || contains(clauses[id], -x));
             clause &C = clauses[id];
             if (contains(C, x))
             {
-                on_clause_erase(id);
-                for (int j = 0; j < C.size(); j++)
-                    if (C[j] != x)
-                    {
-                        fast_erase(var_to_clauses[abs(C[j])], id);
-                        on_clause_erase(id, C[j]);
-                    }
-                size_to_clauses[C.size()].erase(id);
-                C.clear();
-                C.push_back(0);
+                fast_erase(C, x);
+                for (var y : C)
+                    fast_erase(var_to_clauses[abs(y)], id);
+                C = vector<int>(1, SATISFIED);
             }
             else
-            {
-                on_clause_modified(id);
-                size_to_clauses[C.size()].erase(id);
                 fast_erase(C, -x);
-                for (int j = 0; j < C.size(); j++)
-                    on_clause_modified(id, C[j]);
-                size_to_clauses[C.size()].insert(id);
-            }
         }
+        var_to_clauses[lit(x)].clear();
     }
-
-    clause_id get_unit_clause()
-    {
-        return size_to_clauses[1].size() ? *size_to_clauses[1].begin() : NOT_A_CLAUSE;
-    }
-
-    var get_any_var()
-    {
-        return variables.size() ? *variables.begin() : NOT_A_VAR;
-    }
-
+    int not_satisfied = 0;
     bool is_satisfied()
     {
-        return size_to_clauses[0].empty();
+        for (clause &C : clauses)
+        {
+            // assert(C.size() <= 1);
+            // assert(C.size() == 0 || C[0] == SATISFIED);
+            if (C.size() == 0)
+                not_satisfied++;
+        }
+        // cout << "Found " << not_satisfied << " not satisfied clauses" << endl;
+        return not_satisfied == 0;
     }
-
     void print()
     {
         cout << "N = " << N << ", M = " << M << endl;
@@ -128,17 +167,13 @@ public:
         }
         cout << endl;
     }
-
-protected:
-    virtual inline void on_clause_erase(clause_id id) {}
-    virtual inline void on_clause_erase(clause_id id, var x) {}
-    virtual inline void on_clause_modified(clause_id id) {}
-    virtual inline void on_clause_modified(clause_id id, var x) {}
 };
 
 class SAT_solver
 {
 public:
+    vector<bool> assignment;
+    virtual string name() { return "None"; }
     virtual bool solve(CNF *cnf)
     {
         return false;
