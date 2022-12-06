@@ -87,6 +87,7 @@ public:
             vars_seen.push_back(0);
         for (int i = 1; i <= N; i++)
             vars_permutation.push_back(i);
+
         random_shuffle(vars_permutation.begin(), vars_permutation.end());
         var_to_clauses.resize(N + 1);
         for (int i = 1; i <= N; i++)
@@ -97,6 +98,18 @@ public:
             for (var x : C)
                 var_to_clauses[abs(x)].push_back(i);
         }
+        /*int max_clauses = 0, min_clauses = 100000000, average_clauses = 0;
+        for (int i = 1; i <= N; i++)
+        {
+            max_clauses = max(max_clauses, (int)var_to_clauses[i].size());
+            min_clauses = min(min_clauses, (int)var_to_clauses[i].size());
+            average_clauses += var_to_clauses[i].size();
+        }
+        average_clauses /= N;
+        cout << "Max clauses: " << max_clauses << endl;
+        cout << "Min clauses: " << min_clauses << endl;
+        cout << "Average clauses: " << average_clauses << endl;
+        */
     }
     void erase_var(int x)
     {
