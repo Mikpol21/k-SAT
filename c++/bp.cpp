@@ -1,8 +1,11 @@
 #include <math.h>
 #include "unit_clause.cpp"
+#include "stats_keeper.cpp"
 
 class BeliefPropagation : public Unit_Clause
 {
+    // H[i][a] -> how likely i satisfies a
+    // U[id][i] -> how much id influences i
     vector<unordered_map<int, double>> U, H;
 
     CNF *cnf;
@@ -14,7 +17,7 @@ class BeliefPropagation : public Unit_Clause
         U.resize(cnf->M);
         for (clause_id id = 0; id < cnf->M; id++)
             for (int x : cnf->clauses[id])
-                U[id][x] = 0.;
+                U[id][abs(x)] = 0.;
         for (var x = 1; x <= cnf->N; x++)
             for (clause_id id : cnf->var_to_clauses[x])
                 H[x][id] = 0.;
@@ -22,8 +25,10 @@ class BeliefPropagation : public Unit_Clause
     }
 
     // O(r*k^2)
+    // updating H[i][id] for all clause that contain i
     void update_var(var i)
     {
+        assert(i > 0);
         double positives = 0., negatives = 0.;
         for (clause_id id : cnf->var_to_clauses[i])
         {
@@ -43,13 +48,16 @@ class BeliefPropagation : public Unit_Clause
 
     double f(const vector<double> &hs)
     {
+        const double epsilon = 0.001;
         double result = 1.;
         for (double h : hs)
             result *= (1 - tanh(h)) / 2.;
-        result = -log(1. - result);
+        result = -log(1. - (1. - epsilon) * result);
+        return result;
     }
 
     // O(k ^ 2)
+    // updating U[id][x] for all x inside clause[id]
     void update_clause(clause_id id)
     {
         clause &C = cnf->clauses[id];
@@ -58,13 +66,14 @@ class BeliefPropagation : public Unit_Clause
             vector<double> hs;
             for (int y : C)
                 if (y != x)
-                    hs.push_back(H[y][id]);
-            U[id][x] = f(hs);
+                    hs.push_back(H[abs(y)][id]);
+            U[id][abs(x)] = f(hs);
         }
     }
 
-    pair<double, double> extract_marginal(var x)
+    double signal(var x)
     {
+        assert(x > 0);
         double result = 0.;
         for (clause_id id : cnf->var_to_clauses[x])
         {
@@ -73,8 +82,14 @@ class BeliefPropagation : public Unit_Clause
             else
                 result -= U[id][x];
         }
-        double pos = (1. + tanh(result)) / 2.;
-        double neg = (1. - tanh(result)) / 2.;
+        return result;
+    }
+
+    pair<double, double> extract_marginal(var x)
+    {
+        double result = signal(x);
+        double pos = (1. - tanh(result)) / 2.;
+        double neg = (1. + tanh(result)) / 2.;
         return {neg, pos};
     }
 
@@ -87,12 +102,105 @@ class BeliefPropagation : public Unit_Clause
             ordering.push_back({1, id});
         random_shuffle(ordering.begin(), ordering.end());
         for (auto p : ordering)
+        {
             if (p.first)
+            {
+                clause_id id = p.second;
+                if (cnf->clauses[id].size() == 0)
+                    continue;
+                if (cnf->clauses[id].size() == 1)
+                {
+                    assert(cnf->clauses[id][0] == SATISFIED);
+                    continue;
+                }
                 update_clause(p.second);
-            else
+            }
+            else if (!cnf->is_erased(p.second))
                 update_var(p.second);
+        }
+    }
+
+    void print_state()
+    {
+        cout << "H(i->a)" << endl;
+        for (var x = 1; x <= cnf->N; x++)
+        {
+            cout << x << ": ";
+            for (auto p : H[x])
+                cout << "(" << p.first << ": " << p.second << ") ";
+            cout << endl;
+        }
+        cout << "U(a->i)" << endl;
+        for (clause_id a = 0; a < cnf->M; a++)
+        {
+            cout << a << ": ";
+            for (auto p : U[a])
+                cout << "(" << p.first << ": " << p.second << ") ";
+            cout << endl;
+        }
+        for (int x = 1; x <= cnf->N; x++)
+        {
+            auto p = extract_marginal(x);
+            cout << x << ": " << p.first << "/" << p.second << endl;
+        }
+        cnf->print();
+    }
+
+    int Propagation()
+    {
+        const int max_iter = 200;
+        vector<double> previous_signal(cnf->N + 1, 0.5);
+        int i;
+        for (i = 0; i < max_iter; i++)
+        {
+            // cout << "Iteration: " << i + 1 << endl;
+            BP_round();
+            // print_state();
+            double max_diff = 0;
+            for (var x = 1; x <= cnf->N; ++x)
+            {
+                double new_signal = tanh(signal(x));
+                max_diff = max(max_diff, abs(new_signal - previous_signal[x]));
+                previous_signal[x] = new_signal;
+            }
+            if (max_diff <= 0.000001)
+                break;
+        }
+        return i;
     }
 
 public:
     string name() override { return "Belief Propagation"; }
+    bool solve(CNF *cnf) override
+    {
+        init(cnf);
+        // cout << "initialized" << endl;
+        StatsKeeper stats("BP iterations");
+        for (int i = 0; i < cnf->N; i++)
+        {
+            int id = get_unit_clause();
+            if (id != NOT_A_CLAUSE)
+                satisfy(cnf->clauses[id][0]);
+            else
+            {
+                int iter = Propagation();
+                stats.add(iter);
+                var x_opt = -1;
+                double max_marginal = 0;
+                for (var x = 1; x <= cnf->N; x++)
+                    if (!cnf->is_erased(x))
+                    {
+                        auto p = extract_marginal(x);
+                        if (p.first > max_marginal)
+                            x_opt = x, max_marginal = p.first;
+                        if (p.second > max_marginal)
+                            x_opt = -x, max_marginal = p.second;
+                    }
+                // cout << "satisfying " << x_opt << " with marginal " << max_marginal << endl;
+                satisfy(x_opt);
+            }
+        }
+        // stats.print();
+        return cnf->is_satisfied();
+    }
 };

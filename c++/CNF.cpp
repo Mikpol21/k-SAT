@@ -91,7 +91,7 @@ public:
         random_shuffle(vars_permutation.begin(), vars_permutation.end());
         var_to_clauses.resize(N + 1);
         for (int i = 1; i <= N; i++)
-            var_to_clauses[i] = vector<clause_id>();
+            var_to_clauses[i].clear();
         for (int i = 0; i < M; i++)
         {
             clause &C = clauses[i];

@@ -4,6 +4,7 @@
 #include "johnson.cpp"
 #include "generator.cpp"
 #include "walksat.cpp"
+#include "bp.cpp"
 #include <chrono>
 using namespace std;
 using namespace std::chrono;
@@ -20,6 +21,8 @@ SAT_solver *get_solver(string name)
         return new Johnson_Heuristic();
     if (name == "WalkSAT")
         return new WalkSAT();
+    if (name == "BP")
+        return new BeliefPropagation();
     return nullptr;
 }
 
@@ -95,6 +98,7 @@ int main(int argc, char *argv[])
         solvers.push_back(get_solver("UCM"));
         solvers.push_back(get_solver("Johnson"));
         solvers.push_back(get_solver("WalkSAT"));
+        solvers.push_back(get_solver("BP"));
     }
     map<string, int> satisfied;
     map<string, int> unsat_clauses;
