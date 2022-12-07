@@ -1,10 +1,10 @@
 #pragma once
-#include "CNF.cpp"
 #include "unit_clause.cpp"
 
-class Unit_Clause_With_Majority : public Unit_Clause
+class PureLiteral : public Unit_Clause
 {
 protected:
+    queue<var> pure_literals;
     vector<int> positives, negatives;
     void init(CNF *cnf)
     {
@@ -23,6 +23,26 @@ protected:
                     negatives[-x]++;
             }
         }
+        while (!pure_literals.empty())
+            pure_literals.pop();
+        for (var i = 1; i <= cnf->N; i++)
+        {
+            if (positives[i] == 0 && negatives[i] != 0)
+                pure_literals.push(-i);
+            if (negatives[i] == 0 && positives[i] != 0)
+                pure_literals.push(i);
+        }
+    }
+
+    var get_pure_literal()
+    {
+        while (!pure_literals.empty() && cnf->is_erased(pure_literals.front()))
+            pure_literals.pop();
+        if (pure_literals.empty())
+            return NOT_A_VAR;
+        var x = pure_literals.front();
+        pure_literals.pop();
+        return x;
     }
 
     void satisfy(int x)
@@ -30,36 +50,48 @@ protected:
         for (clause_id id : cnf->var_to_clauses[abs(x)])
         {
             clause &C = cnf->clauses[id];
-            if (contains(C, -x))
+            if (!contains(C, x))
                 continue;
-            // otherwise C is bound to be erased
             for (int y : C)
             {
+                if (x == y)
+                    continue;
                 if (y > 0)
+                {
                     positives[y]--;
+                    if (positives[y] == 0)
+                        pure_literals.push(-y);
+                }
                 else
+                {
                     negatives[-y]--;
+                    if (negatives[-y] == 0)
+                        pure_literals.push(-y);
+                }
             }
         }
         Unit_Clause::satisfy(x);
     }
 
 public:
-    string name() override { return "Unit Clause With Majority"; }
+    string name() override { return "Pure Literal"; }
     bool solve(CNF *cnf) override
     {
         init(cnf);
         for (int i = 0; i < cnf->N; i++)
         {
             int id = get_unit_clause();
+            var x = get_pure_literal();
             if (id != NOT_A_CLAUSE)
                 satisfy(cnf->clauses[id][0]);
+            else if (x != NOT_A_VAR)
+                satisfy(x);
             else
             {
-                var x = cnf->next_rand_var();
+                x = cnf->next_rand_var();
                 if (x == NOT_A_VAR)
                     break;
-                if (positives[x] >= negatives[x])
+                if (coin_flip())
                     satisfy(x);
                 else
                     satisfy(-x);

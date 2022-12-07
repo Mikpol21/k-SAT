@@ -48,6 +48,8 @@ protected:
         erased_clauses.resize(cnf->M);
         for (int i = 0; i < cnf->M; i++)
             erased_clauses[i] = false;
+        while (!unit_clauses.empty())
+            unit_clauses.pop();
     }
 
 public:

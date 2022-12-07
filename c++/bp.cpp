@@ -1,8 +1,8 @@
 #include <math.h>
-#include "unit_clause.cpp"
+#include "pure_literal.cpp"
 #include "stats_keeper.cpp"
 
-class BeliefPropagation : public Unit_Clause
+class BeliefPropagation : public PureLiteral
 {
     // H[i][a] -> how likely i satisfies a
     // U[id][i] -> how much id influences i
@@ -21,7 +21,7 @@ class BeliefPropagation : public Unit_Clause
         for (var x = 1; x <= cnf->N; x++)
             for (clause_id id : cnf->var_to_clauses[x])
                 H[x][id] = 0.;
-        Unit_Clause::init(cnf);
+        PureLiteral::init(cnf);
     }
 
     // O(r*k^2)
@@ -170,17 +170,21 @@ class BeliefPropagation : public Unit_Clause
     }
 
 public:
-    string name() override { return "Belief Propagation"; }
+    string name() override { return "Belief Propagation with UCP"; }
     bool solve(CNF *cnf) override
     {
         init(cnf);
         // cout << "initialized" << endl;
         StatsKeeper stats("BP iterations");
+        int t = 0;
         for (int i = 0; i < cnf->N; i++)
         {
             int id = get_unit_clause();
+            var x = get_pure_literal();
             if (id != NOT_A_CLAUSE)
-                satisfy(cnf->clauses[id][0]);
+                satisfy(cnf->clauses[id][0]), t++;
+            else if (x != NOT_A_VAR)
+                satisfy(x), t++;
             else
             {
                 int iter = Propagation();
@@ -201,6 +205,7 @@ public:
             }
         }
         // stats.print();
+        // cout << "done forced steps" << t << endl;
         return cnf->is_satisfied();
     }
 };

@@ -4,6 +4,7 @@
 #include "johnson.cpp"
 #include "generator.cpp"
 #include "walksat.cpp"
+#include "pure_literal.cpp"
 #include "bp.cpp"
 #include <chrono>
 using namespace std;
@@ -23,6 +24,8 @@ SAT_solver *get_solver(string name)
         return new WalkSAT();
     if (name == "BP")
         return new BeliefPropagation();
+    if (name == "PL")
+        return new PureLiteral();
     return nullptr;
 }
 
@@ -99,6 +102,7 @@ int main(int argc, char *argv[])
         solvers.push_back(get_solver("Johnson"));
         solvers.push_back(get_solver("WalkSAT"));
         solvers.push_back(get_solver("BP"));
+        solvers.push_back(get_solver("PL"));
     }
     map<string, int> satisfied;
     map<string, int> unsat_clauses;
