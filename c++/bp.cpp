@@ -7,7 +7,7 @@ class BeliefPropagation : public PureLiteral
     // H[i][a] -> how likely i satisfies a
     // U[id][i] -> how much id influences i
     vector<unordered_map<int, double>> U, H;
-
+    vector<pair<bool, int>> ordering;
     CNF *cnf;
 
     void init(CNF *cnf)
@@ -15,6 +15,11 @@ class BeliefPropagation : public PureLiteral
         this->cnf = cnf;
         H.resize(cnf->N + 1);
         U.resize(cnf->M);
+        ordering.clear();
+        for (var x = 1; x <= cnf->N; x++)
+            ordering.push_back({0, x});
+        for (clause_id id = 0; id < cnf->M; id++)
+            ordering.push_back({1, id});
         for (clause_id id = 0; id < cnf->M; id++)
             for (int x : cnf->clauses[id])
                 U[id][abs(x)] = 0.;
@@ -48,11 +53,14 @@ class BeliefPropagation : public PureLiteral
 
     double f(const vector<double> &hs)
     {
-        const double epsilon = 0.001;
+        const double epsilon = 0.0001;
         double result = 1.;
         for (double h : hs)
-            result *= (1 - tanh(h)) / 2.;
-        result = -log(1. - (1. - epsilon) * result);
+            result *= (1 - tanh(h));
+        result /= pow(2., hs.size());
+        if (result == 1.)
+            result -= epsilon;
+        result = -log(1. - result);
         return result;
     }
 
@@ -95,11 +103,6 @@ class BeliefPropagation : public PureLiteral
 
     void BP_round()
     {
-        vector<pair<bool, int>> ordering;
-        for (var x = 1; x <= cnf->N; x++)
-            ordering.push_back({0, x});
-        for (clause_id id = 0; id < cnf->M; id++)
-            ordering.push_back({1, id});
         random_shuffle(ordering.begin(), ordering.end());
         for (auto p : ordering)
         {
@@ -163,7 +166,7 @@ class BeliefPropagation : public PureLiteral
                 max_diff = max(max_diff, abs(new_signal - previous_signal[x]));
                 previous_signal[x] = new_signal;
             }
-            if (max_diff <= 0.000001)
+            if (max_diff <= 1e-10)
                 break;
         }
         return i;

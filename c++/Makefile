@@ -11,3 +11,4 @@ main: $(OBJ)
 
 clean:
 	@rm $(OBJ)
+	@make
