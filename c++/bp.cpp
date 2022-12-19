@@ -45,9 +45,9 @@ class BeliefPropagation : public PureLiteral
         for (clause_id id : cnf->var_to_clauses[i])
         {
             if (contains(cnf->clauses[id], i))
-                H[i][id] = positives - U[id][i];
+                H[i][id] = positives - U[id][i] - negatives;
             else
-                H[i][id] = negatives - U[id][i];
+                H[i][id] = negatives - U[id][i] - positives;
         }
     }
 
@@ -60,7 +60,7 @@ class BeliefPropagation : public PureLiteral
         result /= pow(2., hs.size());
         if (result == 1.)
             result -= epsilon;
-        result = -log(1. - result);
+        result = -0.5 * log(1. - result);
         return result;
     }
 
