@@ -35,6 +35,8 @@
   ],
   "files.associations": {
     "*.p": "pascal",
-    "chrono": "cpp"
+    "chrono": "cpp",
+    "cmath": "cpp",
+    "iostream": "cpp"
   }
 }
