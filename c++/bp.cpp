@@ -1,9 +1,11 @@
+#pragma once
 #include <math.h>
 #include "pure_literal.cpp"
 #include "stats_keeper.cpp"
 
 class BeliefPropagation : public PureLiteral
 {
+protected:
     // H[i][a] -> how likely i satisfies a
     // U[id][i] -> how much id influences i
     vector<unordered_map<int, double>> U, H;
@@ -113,7 +115,7 @@ class BeliefPropagation : public PureLiteral
                     continue;
                 if (cnf->clauses[id].size() == 1)
                 {
-                    assert(cnf->clauses[id][0] == SATISFIED);
+                    // assert(cnf->clauses[id][0] == SATISFIED);
                     continue;
                 }
                 update_clause(p.second);

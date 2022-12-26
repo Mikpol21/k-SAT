@@ -6,6 +6,7 @@
 #include "walksat.cpp"
 #include "pure_literal.cpp"
 #include "bp.cpp"
+#include "experimental_bp.cpp"
 #include <chrono>
 using namespace std;
 using namespace std::chrono;
@@ -26,10 +27,12 @@ SAT_solver *get_solver(string name)
         return new BeliefPropagation();
     if (name == "PL")
         return new PureLiteral();
+    if (name == "EXP")
+        return new ExperimentalBP();
     return nullptr;
 }
 
-void parse_config(int &k, int &test_cases)
+void parse_config(int &k, int &test_cases, vector<SAT_solver *> &solvers)
 {
     ifstream file;
     try
@@ -40,6 +43,8 @@ void parse_config(int &k, int &test_cases)
         k = stoi(line);
         getline(file, line);
         test_cases = stoi(line);
+        while (getline(file, line))
+            solvers.push_back(get_solver(line));
         file.close();
     }
     catch (exception e)
@@ -88,22 +93,11 @@ int main(int argc, char *argv[])
 {
     srand(time(NULL));
     int k, test_cases;
-    parse_config(k, test_cases);
+    vector<SAT_solver *> solvers;
+    parse_config(k, test_cases, solvers);
     int n = atoi(argv[1]);
     float r = atof(argv[2]);
     int m = r * n;
-    vector<SAT_solver *> solvers;
-    if (argc > 3)
-        solvers.push_back(get_solver(argv[3]));
-    else
-    {
-        solvers.push_back(get_solver("UC"));
-        solvers.push_back(get_solver("UCM"));
-        solvers.push_back(get_solver("Johnson"));
-        solvers.push_back(get_solver("WalkSAT"));
-        solvers.push_back(get_solver("BP"));
-        solvers.push_back(get_solver("PL"));
-    }
     map<string, int> satisfied;
     map<string, int> unsat_clauses;
     map<string, time_t> times;
