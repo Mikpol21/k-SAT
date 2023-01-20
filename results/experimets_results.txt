@@ -1,0 +1,28 @@
+4-SAT on 50 500 9.0
+
+Prob of satisfying a formula
+  Experimental Belief Propagation: 0
+  Belief Propagation with UCP: 0
+Average number of empty clauses
+  Experimental Belief Propagation: 24.38
+  Belief Propagation with UCP: 20.92
+Average execution time
+  Experimental Belief Propagation: 3679.66ms
+  Belief Propagation with UCP: 56908.6ms
+
+
+
+Solving 4-SAT on 50 test cases using:
+  - Experimental Belief Propagation
+  - Belief Propagation with UCP
+100% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||]        
+Prob of satisfying a formula
+  Experimental Belief Propagation: 0
+  Belief Propagation with UCP: 0
+Average number of empty clauses
+  Experimental Belief Propagation: 18.56
+  Belief Propagation with UCP: 17.42
+Average execution time
+  Experimental Belief Propagation: 3865.26ms
+  Belief Propagation with UCP: 58931.7ms
+

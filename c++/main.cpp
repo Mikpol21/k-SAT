@@ -7,6 +7,7 @@
 #include "pure_literal.cpp"
 #include "bp.cpp"
 #include "experimental_bp.cpp"
+#include "prob_rec.cpp"
 #include <chrono>
 using namespace std;
 using namespace std::chrono;
@@ -29,6 +30,8 @@ SAT_solver *get_solver(string name)
         return new PureLiteral();
     if (name == "EXP")
         return new ExperimentalBP();
+    if (name == "Tree")
+        return new TreeSAT();
     return nullptr;
 }
 
