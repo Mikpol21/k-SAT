@@ -11,7 +11,7 @@ public:
         // cout << "initialized" << endl;
         StatsKeeper stats("BP iterations");
 
-        int rate = 20;
+        int rate = sqrt(cnf->N);
         int t = rate;
         priority_queue<pair<double, int>> marginals;
         for (int i = 0; i < cnf->N; i++, t++)
