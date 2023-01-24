@@ -27,7 +27,7 @@ protected:
                 U[id][abs(x)] = 0.;
         for (var x = 1; x <= cnf->N; x++)
             for (clause_id id : cnf->var_to_clauses[x])
-                H[x][id] = 0.;
+                H[x][id] = 0.5;
         PureLiteral::init(cnf);
     }
 
@@ -47,9 +47,9 @@ protected:
         for (clause_id id : cnf->var_to_clauses[i])
         {
             if (contains(cnf->clauses[id], i))
-                H[i][id] = positives - U[id][i] - negatives;
+                H[i][id] = tanh(positives - U[id][i] - negatives);
             else
-                H[i][id] = negatives - U[id][i] - positives;
+                H[i][id] = tanh(negatives - U[id][i] - positives);
         }
     }
 
@@ -58,7 +58,7 @@ protected:
         const double epsilon = 0.0001;
         double result = 1.;
         for (double h : hs)
-            result *= (1 - tanh(h));
+            result *= (1 - h);
         result /= pow(2., hs.size());
         if (result == 1.)
             result -= epsilon;
@@ -88,9 +88,9 @@ protected:
         for (clause_id id : cnf->var_to_clauses[x])
         {
             if (contains(cnf->clauses[id], x))
-                result += U[id][x];
-            else
                 result -= U[id][x];
+            else
+                result += U[id][x];
         }
         return result;
     }
@@ -156,21 +156,24 @@ protected:
         const int max_iter = 200;
         vector<double> previous_signal(cnf->N + 1, 0.5);
         int i;
+        double max_diff = 0.;
         for (i = 0; i < max_iter; i++)
         {
             // cout << "Iteration: " << i + 1 << endl;
             BP_round();
             // print_state();
-            double max_diff = 0;
+            max_diff = 0;
             for (var x = 1; x <= cnf->N; ++x)
             {
                 double new_signal = tanh(signal(x));
                 max_diff = max(max_diff, abs(new_signal - previous_signal[x]));
                 previous_signal[x] = new_signal;
             }
-            if (max_diff <= 1e-10)
+            // cout << max_diff << endl;
+            if (max_diff <= 1e-5)
                 break;
         }
+        // cout << max_diff << " " << i << endl;
         return i;
     }
 
@@ -184,6 +187,8 @@ public:
         int t = 0;
         for (int i = 0; i < cnf->N; i++)
         {
+            // if (i % (cnf->N / 100) == (cnf->N / 100) - 1)
+            //     cout << (i + 1) << "%" << endl;
             int id = get_unit_clause();
             var x = get_pure_literal();
             if (id != NOT_A_CLAUSE)
@@ -194,22 +199,28 @@ public:
             {
                 int iter = Propagation();
                 stats.add(iter);
+                // cout << iter << endl;
                 var x_opt = -1;
                 double max_marginal = 0;
                 for (var x = 1; x <= cnf->N; x++)
                     if (!cnf->is_erased(x))
                     {
-                        auto p = extract_marginal(x);
+                        pair<double, double> p = extract_marginal(x);
+                        // cout << "Bvar: " << x << endl;
+                        // cout << "prob0: " << p.second << endl;
+                        // cout << "prob1: " << p.first << endl;
                         if (p.first > max_marginal)
-                            x_opt = x, max_marginal = p.first;
+                            x_opt = -x, max_marginal = p.first;
                         if (p.second > max_marginal)
-                            x_opt = -x, max_marginal = p.second;
+                            x_opt = x, max_marginal = p.second;
                     }
-                // cout << "satisfying " << x_opt << " with marginal " << max_marginal << endl;
+                // cout << "Bvar: " << x_opt << endl;
+                // cout << "prob: " << max_marginal << endl;
+                //  cout << "satisfying " << x_opt << " with marginal " << max_marginal << endl;
                 satisfy(x_opt);
             }
         }
-        // stats.print();
+        stats.print();
         // cout << "done forced steps" << t << endl;
         return cnf->is_satisfied();
     }

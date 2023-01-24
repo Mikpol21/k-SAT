@@ -43,6 +43,8 @@ public:
         PureLiteral::init(cnf);
     }
 
+    // void log_sum()
+
     void clause_DFS(int id, int depth = 1000000)
     {
         vis_clause[id] = true;
@@ -132,16 +134,20 @@ public:
                 satisfy(x);
             else
             {
-                int samples = 20;
+                int samples = 10;
                 int v = cnf->next_rand_var();
                 double prob0 = 0.0, prob1 = 0.0;
                 for (int i = 0; i < samples; i++)
                 {
                     toggle_off();
-                    variable_DFS(v, 3);
+                    variable_DFS(v);
                     prob0 += var_0[v];
                     prob1 += var_1[v];
                 }
+                cout << "Tvar: " << v << endl;
+                cout << "prob0: " << prob0 << endl;
+                cout << "prob1: " << prob1 << endl;
+                cnf->print();
                 if (prob0 > prob1)
                     satisfy(-v);
                 else

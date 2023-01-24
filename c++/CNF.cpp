@@ -144,7 +144,11 @@ public:
                 C = vector<int>(1, SATISFIED);
             }
             else
+            {
                 fast_erase(C, -x);
+                // if (C.size() == 0)
+                // cout << "Error while satisfying " << x << endl;
+            }
         }
         var_to_clauses[lit(x)].clear();
     }
