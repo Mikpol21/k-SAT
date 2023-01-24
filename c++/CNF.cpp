@@ -71,9 +71,9 @@ class CNF
 {
     vector<bool> vars_seen;
     vector<int> vars_permutation;
-    int current_permutation_index = 0;
 
 public:
+    int current_permutation_index = 0;
     int N, M, K; // N - vars, M - clauses
     vector<clause> clauses;
     vector<vector<clause_id>> var_to_clauses;

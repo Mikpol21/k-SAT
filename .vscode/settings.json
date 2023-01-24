@@ -37,6 +37,7 @@
     "*.p": "pascal",
     "chrono": "cpp",
     "cmath": "cpp",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "ostream": "cpp"
   }
 }

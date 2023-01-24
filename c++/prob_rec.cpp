@@ -1,7 +1,7 @@
 #pragma once
 #include "pure_literal.cpp"
 #include "CNF.cpp"
-
+#include "stats_keeper.cpp"
 class TreeSAT : public PureLiteral
 {
     int N, M;
@@ -28,6 +28,22 @@ public:
         for (int i = 0; i < M; i++)
             vis_clause[i] = false, is_leaf[i] = false;
     }
+    StatsKeeper vars_visited = StatsKeeper("vars visited");
+    StatsKeeper clauses_visited = StatsKeeper("clauses visited");
+    vector<int> visited_clauses, visited_vars;
+    void smart_toggle_off()
+    {
+        // cout << "visited clauses " << visited_clauses.size() << endl;
+        // cout << "visited variables " << visited_vars.size() << endl;
+        vars_visited.add(visited_vars.size());
+        clauses_visited.add(visited_clauses.size());
+        for (clause_id id : visited_clauses)
+            vis_clause[id] = false, is_leaf[id] = false;
+        for (var v : visited_vars)
+            vis_var[v] = false;
+        visited_clauses.clear();
+        visited_vars.clear();
+    }
 
     void init(CNF *cnf)
     {
@@ -43,30 +59,49 @@ public:
         PureLiteral::init(cnf);
     }
 
-    // void log_sum()
+    double log_sum(double x, double y)
+    {
+        // return log(exp(x) + exp(y));
+        if (x > y)
+            return x + log(1 + exp(y - x));
+        else
+            return y + log(1 + exp(x - y));
+    }
+
+    double log_diff(double x, double y)
+    {
+        // return log(exp(x) - exp(y));
+        return x + log(1 - exp(y - x));
+    }
 
     void clause_DFS(int id, int depth = 1000000)
     {
         vis_clause[id] = true;
-        double prob = 1.0, without_c = 1.0;
+        visited_clauses.push_back(id);
+        // double prob = 1.0, without_c = 1.0;
+        double prob = 0., without_c = 0.;
         random_shuffle(cnf->clauses[id].begin(), cnf->clauses[id].end());
         bool isleaf = true;
+        double log_half = log(0.5);
         for (var v : cnf->clauses[id])
         {
             if (!vis_var[abs(v)])
             {
                 isleaf = false;
                 variable_DFS(abs(v), depth - 1);
-                prob *= 0.5 * (var_1[abs(v)] + var_0[abs(v)]);
+                // prob *= 0.5 * (var_1[abs(v)] + var_0[abs(v)]);
+                prob += log_half + log_sum(var_1[abs(v)], var_0[abs(v)]);
                 if (v > 0)
-                    without_c *= 0.5 * var_0[abs(v)];
-                else
-                    without_c *= 0.5 * var_1[abs(v)];
+                    // without_c *= 0.5 * var_0[abs(v)];
+                    without_c += log_half + var_0[abs(v)];
+                else // without_c *= 0.5 * var_1[abs(v)];
+                    without_c += log_half + var_1[abs(v)];
             }
         }
         is_leaf[id] = isleaf;
         T_bar[id] = prob;
-        T[id] = prob - without_c;
+        // T[id] = prob - without_c
+        T[id] = log_diff(prob, without_c);
         // cout << "clause " << id << ": with clause " << T[id] << ", without " << T_bar[id] << endl;
     }
 
@@ -74,10 +109,14 @@ public:
     {
         if (depth == 0)
         {
-            var_1[v] = var_0[v] = 1.0;
+            // var_1[v] = var_0[v] = 1.0;
+            var_1[v] = var_0[v] = 0.0;
+            return;
         }
         vis_var[v] = true;
-        double prob_0 = 1.0, prob_1 = 1.0;
+        visited_vars.push_back(v);
+        // double prob_0 = 1.0, prob_1 = 1.0;
+        double prob_0 = 0.0, prob_1 = 0.0;
         random_shuffle(cnf->var_to_clauses[v].begin(), cnf->var_to_clauses[v].end());
         for (clause_id id : cnf->var_to_clauses[v])
         {
@@ -88,13 +127,17 @@ public:
                     continue;
                 if (contains(cnf->clauses[id], v))
                 {
-                    prob_1 *= T_bar[id];
-                    prob_0 *= T[id];
+                    // prob_1 *= T_bar[id];
+                    prob_1 += T_bar[id];
+                    // prob_0 *= T[id];
+                    prob_0 += T[id];
                 }
                 else
                 {
-                    prob_1 *= T[id];
-                    prob_0 *= T_bar[id];
+                    // prob_1 *= T[id];
+                    prob_1 += T[id];
+                    // prob_0 *= T_bar[id];
+                    prob_0 += T_bar[id];
                 }
             }
         }
@@ -134,26 +177,28 @@ public:
                 satisfy(x);
             else
             {
-                int samples = 10;
+                int samples = 40;
                 int v = cnf->next_rand_var();
                 double prob0 = 0.0, prob1 = 0.0;
                 for (int i = 0; i < samples; i++)
                 {
-                    toggle_off();
-                    variable_DFS(v);
+                    smart_toggle_off();
+                    variable_DFS(v, 2);
                     prob0 += var_0[v];
                     prob1 += var_1[v];
                 }
-                cout << "Tvar: " << v << endl;
-                cout << "prob0: " << prob0 << endl;
-                cout << "prob1: " << prob1 << endl;
-                cnf->print();
+                // cout << "Tvar: " << v << endl;
+                // cout << "prob0: " << prob0 << " " << exp(prob0) << endl;
+                //  cout << "prob1: " << prob1 << " " << exp(prob1) << endl;
+                //   cnf->print();
                 if (prob0 > prob1)
                     satisfy(-v);
                 else
                     satisfy(v);
             }
         }
+        // vars_visited.print();
+        // clauses_visited.print();
         return cnf->is_satisfied();
     }
 };

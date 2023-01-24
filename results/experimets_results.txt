@@ -26,3 +26,54 @@ Average execution time
   Experimental Belief Propagation: 3865.26ms
   Belief Propagation with UCP: 58931.7ms
 
+UCM
+4-SAT 50 tests:
+ratio;satisfied;N
+5.9;0.12;500
+5.8;0.24;500
+5.5;0.36;500
+
+TreeProp
+4-SAT 50 Tests
+ratio;satisfied;N
+5.9;0.0;500
+5.8;0.06;500
+5.5;0.2;500
+
+TreeProp(depth=3, samples = 20)
+3-SAT
+ratio;satisfied;tests;N
+3.0;0.88;50;10000
+3.0;0.7;50;1000
+3.3;0.14;50;1000
+
+4-SAT (depth = 2, smaples = 20)
+ratio;satisfied;tests;N
+5.5;0.78;50;1000
+6.5;0.1;50;1000
+4-SAT (depth = 3, samples = 10)
+6.5;0.04;50;1000
+4-SAT(depth = 3, samples = 20)
+6.5;0.02;50;1000
+
+
+BP
+N = 500
+96.630 seconds
+unsat_clauses = 3.6667
+bp_rounds = 120
+
+ratio;satisfied;tests;N
+9.0;0.94;50;500
+
+
+EXP_BP (20 at once)
+time: 37.263
+4-SAT 50 tests
+
+ratio;satisfied;tests;N
+9.0;0.98;50;1000
+9.0;0.92;50;500
+9.3;0.48;50;500
+
+

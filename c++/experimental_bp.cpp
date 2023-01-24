@@ -11,7 +11,7 @@ public:
         // cout << "initialized" << endl;
         StatsKeeper stats("BP iterations");
 
-        int rate = sqrt(cnf->N);
+        int rate = 20;
         int t = rate;
         priority_queue<pair<double, int>> marginals;
         for (int i = 0; i < cnf->N; i++, t++)
@@ -33,26 +33,21 @@ public:
                     while (!marginals.empty())
                         marginals.pop();
                     for (var x = 1; x <= cnf->N; x++)
-                    {
-                        auto p = extract_marginal(x);
-                        marginals.push({p.first, x});
-                        marginals.push({p.second, -x});
-                    }
+                        if (!cnf->is_erased(x))
+                        {
+                            auto p = extract_marginal(x);
+                            marginals.push({p.first, -x});
+                            marginals.push({p.second, x});
+                        }
                 }
                 int x_opt = NOT_A_VAR;
                 while (!marginals.empty() && cnf->is_erased(marginals.top().second))
                     marginals.pop();
                 if (marginals.empty())
-                {
-                    // cout << "wow " << i << endl;
                     break;
-                }
                 x_opt = marginals.top().second;
-                // cout << marginals.top().first << endl;
                 marginals.pop();
-                // cout << x_opt;
                 satisfy(x_opt);
-                // t++;
             }
         }
         return cnf->is_satisfied();
