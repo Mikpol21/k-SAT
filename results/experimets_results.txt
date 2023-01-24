@@ -51,10 +51,17 @@ ratio;satisfied;tests;N
 ratio;satisfied;tests;N
 5.5;0.78;50;1000
 6.5;0.1;50;1000
+
 4-SAT (depth = 3, samples = 10)
 6.5;0.04;50;1000
+
 4-SAT(depth = 3, samples = 20)
 6.5;0.02;50;1000
+
+4-SAT(depth = 3, samples = 1)
+6.5;0;50;1000
+6.0;0;50;1000
+5.5;0.2;50;1000
 
 
 BP
@@ -76,4 +83,13 @@ ratio;satisfied;tests;N
 9.0;0.92;50;500
 9.3;0.48;50;500
 
+
+Johnson
+4-SAT
+ratio;satisfied;tests;N
+6.8;0.84;50;10000
+7.0;0.58;50;10000
+7.0;0.72/0.66;50;20000
+7.25;0.34;50;20000
+7.5;0.00;50;20000
 

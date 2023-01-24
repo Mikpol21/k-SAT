@@ -177,7 +177,7 @@ public:
                 satisfy(x);
             else
             {
-                int samples = 40;
+                int samples = 20;
                 int v = cnf->next_rand_var();
                 double prob0 = 0.0, prob1 = 0.0;
                 for (int i = 0; i < samples; i++)
