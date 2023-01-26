@@ -21,7 +21,7 @@ ratio;satisfied;tests;N
 
 depth = 4, samples = 20
 3.0;0.72;50;3000 (Johnson - 0.86)
-
+3.3;0.08;50;3000 (Johnson - 0.60)
 
 4-SAT (depth = 2, smaples = 20)
 ratio;satisfied;tests;N
