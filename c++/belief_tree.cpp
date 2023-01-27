@@ -1,18 +1,21 @@
+#include "bp.cpp"
+#include "generator.cpp"
+
 #pragma once
 #include "pure_literal.cpp"
 #include "CNF.cpp"
 #include "stats_keeper.cpp"
-class TreeSAT : public PureLiteral
+class TreeBP : public BeliefPropagation
 {
     int N, M;
     vector<bool> vis_var, vis_clause;
     vector<double> T_bar, T;
     vector<double> var_1, var_0;
-    vector<vector<int>> var_to_clauses;
+    // vector<vector<int>> var_to_clauses;
     vector<bool> is_leaf;
 
 public:
-    string name() override { return "Tree Prop"; }
+    string name() override { return "Tree BP"; }
     void toggle_on()
     {
         for (int i = 0; i <= N; i++)
@@ -38,7 +41,11 @@ public:
         vars_visited.add(visited_vars.size());
         clauses_visited.add(visited_clauses.size());
         for (clause_id id : visited_clauses)
+        {
             vis_clause[id] = false, is_leaf[id] = false;
+            for (int v : cnf->clauses[id])
+                U[id][abs(v)] = 0.0, H[abs(v)][id] = 0.5;
+        }
         for (var v : visited_vars)
             vis_var[v] = false;
         visited_clauses.clear();
@@ -54,9 +61,9 @@ public:
         T_bar.resize(M + 1), T.resize(M + 1);
         var_1.resize(N + 1), var_0.resize(N + 1);
         this->cnf = cnf;
-        for (var v = 1; v <= N; v++)
-            var_to_clauses.clear();
-        PureLiteral::init(cnf);
+        // for (var v = 1; v <= N; v++)
+        //     var_to_clauses.clear();
+        BeliefPropagation::init(cnf);
     }
 
     double log_sum(double x, double y)
@@ -74,8 +81,52 @@ public:
         return x + log(1 - exp(y - x));
     }
 
+    void clause_BP(int id, int depth = 100000)
+    {
+        vis_clause[id] = true;
+        visited_clauses.push_back(id);
+        // cout << "in clause_BP " << id << endl;
+        if (depth == 0)
+            return;
+        update_clause(id);
+        for (var v : cnf->clauses[id])
+        {
+            if (!vis_var[abs(v)])
+            {
+                variable_BP(abs(v), depth - 1);
+            }
+        }
+        update_clause(id);
+    }
+
+    void variable_BP(int v, int depth = 3000)
+    {
+        vis_var[v] = true;
+        visited_vars.push_back(v);
+        // out << var_to_clauses[v].size() << endl;
+        // cout << "in variable_BP " << v << endl;
+        update_var(v);
+        for (clause_id id : cnf->var_to_clauses[v])
+        {
+            // cout << H[v][id] << " " << U[id][v] << endl;
+            //  cout << "in variable_BP " << v << " " << id << endl;
+            if (!vis_clause[id])
+            {
+                clause_BP(id, depth - 1);
+                update_clause(id);
+            }
+        }
+        update_var(v);
+    }
+
     void clause_DFS(int id, int depth = 1000000)
     {
+        if (depth == 0)
+        {
+            // T_bar[id] = T[id] = 1.0;
+            T_bar[id] = T[id] = 0.0;
+            return;
+        }
         vis_clause[id] = true;
         visited_clauses.push_back(id);
         // double prob = 1.0, without_c = 1.0;
@@ -163,10 +214,11 @@ public:
         }
         return double(assignments) / double(1 << (N - 1));
     }
-
+    StatsKeeper differs = StatsKeeper("differs");
     bool solve(CNF *cnf) override
     {
         init(cnf);
+        double average_diff = 0.0;
         for (int i = 0; i < cnf->N; i++)
         {
             int id = get_unit_clause();
@@ -183,44 +235,49 @@ public:
                 for (int i = 0; i < samples; i++)
                 {
                     smart_toggle_off();
-                    variable_DFS(v, 3);
-                    prob0 += var_0[v];
-                    prob1 += var_1[v];
+                    variable_BP(v);
+                    auto p = extract_marginal(v);
+                    prob0 += p.second;
+                    prob1 += p.first;
                 }
-                // cout << "Tvar: " << v << endl;
-                // cout << "prob0: " << prob0 << " " << exp(prob0) << endl;
-                //  cout << "prob1: " << prob1 << " " << exp(prob1) << endl;
-                //   cnf->print();
+                // Propagation();
+                // auto p = extract_marginal(v);
+                // prob0 /= samples;
+                // prob1 /= samples;
+                // average_diff += (prob0 - p.second) * (prob0 - p.second);
+                // average_diff += (prob1 - p.first) * (prob1 - p.first);
+                //  cout << "Tvar: " << v << endl;
+                //  cout << "prob0: " << prob0 << endl;
+                //  cout << "prob1: " << prob1 << endl;
+                //   pair<double, double> p = extract_marginal(v);
+                //  cout << "Bvar: " << v << endl;
+                //  cout << "prob0: " << p.second << endl;
+                //  cout << "prob1: " << p.first << endl;
+                // bool differ = (prob0 < prob1) ^ (p.second < p.first);
+                // cout << differ << endl;
+                // differs.add(differ);
+                // cnf->print();
+
                 if (prob0 > prob1)
-                    satisfy(-v);
-                else
                     satisfy(v);
+                else
+                    satisfy(-v);
             }
         }
-        // vars_visited.print();
-        // clauses_visited.print();
+        // cout << average_diff / (cnf->N * 2) << endl;
+        //  vars_visited.print();
+        //  clauses_visited.print();
+        //  differs.print();
         return cnf->is_satisfied();
     }
 };
-/*
-int main()
+
+/*int main()
 {
-    vector<clause> instance = {
-        {1, 2, 3},
-        {-1, 4, -5},
-        {-1, 6},
-        {-2, 7, -8},
-        {3, 9}};
-    CNF cnf = CNF(9, 5, 3, instance);
-    TreeSAT solver = TreeSAT();
-    solver.init(&cnf);
-    int v = 2;
-    solver.toggle_off();
-    solver.variable_DFS(v);
-    solver.toggle_off();
-    solver.variable_DFS(v);
-    cout << solver.compute_naively(v, 0);
-    cout << solver.compute_naively(v, 1);
-    cout << solver.solve(&cnf) << endl;
-}
-*/
+    int N = 1000, r = 3.0, k = 3;
+    vector<clause> instance = generate_CNF(N, r, k);
+    CNF cnf = CNF(N, r * N, k, instance);
+    TreeBP solver = TreeBP();
+    // solver.init(&cnf);
+    solver.solve(&cnf);
+}*/

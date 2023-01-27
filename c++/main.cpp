@@ -8,6 +8,7 @@
 #include "bp.cpp"
 #include "experimental_bp.cpp"
 #include "prob_rec.cpp"
+#include "belief_tree.cpp"
 #include <chrono>
 using namespace std;
 using namespace std::chrono;
@@ -32,6 +33,8 @@ SAT_solver *get_solver(string name)
         return new ExperimentalBP();
     if (name == "Tree")
         return new TreeSAT();
+    if (name == "TBP")
+        return new TreeBP();
     return nullptr;
 }
 

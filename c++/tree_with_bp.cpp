@@ -1,8 +1,11 @@
+#include "bp.cpp"
+#include "generator.cpp"
+
 #pragma once
 #include "pure_literal.cpp"
 #include "CNF.cpp"
 #include "stats_keeper.cpp"
-class TreeSAT : public PureLiteral
+class TreeSAT : public BeliefPropagation
 {
     int N, M;
     vector<bool> vis_var, vis_clause;
@@ -56,7 +59,7 @@ public:
         this->cnf = cnf;
         for (var v = 1; v <= N; v++)
             var_to_clauses.clear();
-        PureLiteral::init(cnf);
+        BeliefPropagation::init(cnf);
     }
 
     double log_sum(double x, double y)
@@ -74,8 +77,45 @@ public:
         return x + log(1 - exp(y - x));
     }
 
+    void clause_BP(int id, int depth = 100000)
+    {
+        vis_clause[id] = true;
+        visited_clauses.push_back(id);
+        update_clause(id);
+        for (var v : cnf->clauses[id])
+        {
+            if (!vis_var[abs(v)])
+            {
+                variable_BP(abs(v), depth - 1);
+            }
+        }
+        update_clause(id);
+    }
+
+    void variable_BP(int v, int depth)
+    {
+        vis_var[v] = true;
+        visited_vars.push_back(v);
+        update_var(v);
+        for (clause_id id : var_to_clauses[v])
+        {
+            if (!vis_clause[id])
+            {
+                clause_BP(id, depth - 1);
+                update_clause(id);
+            }
+        }
+        update_var(v);
+    }
+
     void clause_DFS(int id, int depth = 1000000)
     {
+        if (depth == 0)
+        {
+            // T_bar[id] = T[id] = 1.0;
+            T_bar[id] = T[id] = 0.0;
+            return;
+        }
         vis_clause[id] = true;
         visited_clauses.push_back(id);
         // double prob = 1.0, without_c = 1.0;
@@ -163,7 +203,7 @@ public:
         }
         return double(assignments) / double(1 << (N - 1));
     }
-
+    StatsKeeper differs = StatsKeeper("differs");
     bool solve(CNF *cnf) override
     {
         init(cnf);
@@ -177,19 +217,27 @@ public:
                 satisfy(x);
             else
             {
-                int samples = 10;
+                int samples = 5;
                 int v = cnf->next_rand_var();
                 double prob0 = 0.0, prob1 = 0.0;
                 for (int i = 0; i < samples; i++)
                 {
                     smart_toggle_off();
-                    variable_DFS(v, 3);
+                    variable_DFS(v, 2);
                     prob0 += var_0[v];
                     prob1 += var_1[v];
                 }
-                // cout << "Tvar: " << v << endl;
-                // cout << "prob0: " << prob0 << " " << exp(prob0) << endl;
-                //  cout << "prob1: " << prob1 << " " << exp(prob1) << endl;
+                Propagation();
+                cout << "Tvar: " << v << endl;
+                cout << "prob0: " << prob0 << " " << exp(prob0) << endl;
+                cout << "prob1: " << prob1 << " " << exp(prob1) << endl;
+                pair<double, double> p = extract_marginal(v);
+                cout << "Bvar: " << v << endl;
+                cout << "prob0: " << p.second << endl;
+                cout << "prob1: " << p.first << endl;
+                bool differ = (prob0 < prob1) ^ (p.second < p.first);
+                cout << differ << endl;
+                differs.add(differ);
                 //   cnf->print();
                 if (prob0 > prob1)
                     satisfy(-v);
@@ -197,30 +245,19 @@ public:
                     satisfy(v);
             }
         }
-        // vars_visited.print();
-        // clauses_visited.print();
+        vars_visited.print();
+        clauses_visited.print();
+        differs.print();
         return cnf->is_satisfied();
     }
 };
-/*
+
 int main()
 {
-    vector<clause> instance = {
-        {1, 2, 3},
-        {-1, 4, -5},
-        {-1, 6},
-        {-2, 7, -8},
-        {3, 9}};
-    CNF cnf = CNF(9, 5, 3, instance);
+    int N = 1000, r = 3.0, k = 3;
+    vector<clause> instance = generate_CNF(N, r, k);
+    CNF cnf = CNF(N, r * N, k, instance);
     TreeSAT solver = TreeSAT();
-    solver.init(&cnf);
-    int v = 2;
-    solver.toggle_off();
-    solver.variable_DFS(v);
-    solver.toggle_off();
-    solver.variable_DFS(v);
-    cout << solver.compute_naively(v, 0);
-    cout << solver.compute_naively(v, 1);
-    cout << solver.solve(&cnf) << endl;
+    // solver.init(&cnf);
+    solver.solve(&cnf);
 }
-*/
