@@ -90,7 +90,7 @@ ratio;satisfied;tests;N
 4.2;0.14;50;2000;18.3
 4.2;0.1;50;3000;17.4
 4.2;0.12;50;2000;15.3 (with 400 iterations and 1/2 sqrt)
-
+4.2;0.14;50;5000;22.25
 Johnson
 4-SAT
 ratio;satisfied;tests;N
