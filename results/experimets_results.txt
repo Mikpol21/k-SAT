@@ -94,7 +94,7 @@ ratio;satisfied;tests;N
 4.2;0.18;7500;29.5
 4.2;0.0;10000;61 (every 400 fixes)
 4.2;0.0;10000;43.04
-4.2;0.0;20000;121 (every 800 fixes)
+4.2;0.0;20000;121 (every 800 fixes,  691460ms)
 Johnson
 4-SAT
 ratio;satisfied;tests;N
