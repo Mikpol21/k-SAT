@@ -151,9 +151,8 @@ protected:
         cnf->print();
     }
 
-    int Propagation()
+    int Propagation(const int max_iter = 200)
     {
-        const int max_iter = 200;
         vector<double> previous_signal(cnf->N + 1, 0.5);
         int i;
         double max_diff = 0.;

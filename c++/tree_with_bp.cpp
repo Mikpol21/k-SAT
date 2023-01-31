@@ -11,7 +11,7 @@ class TreeSAT : public BeliefPropagation
     vector<bool> vis_var, vis_clause;
     vector<double> T_bar, T;
     vector<double> var_1, var_0;
-    vector<vector<int>> var_to_clauses;
+    // vector<vector<int>> var_to_clauses;
     vector<bool> is_leaf;
 
 public:
@@ -41,6 +41,14 @@ public:
         vars_visited.add(visited_vars.size());
         clauses_visited.add(visited_clauses.size());
         for (clause_id id : visited_clauses)
+        {
+            for (var v : cnf->clauses[id])
+            {
+                U[id][abs(v)] = 0.0;
+                H[abs(v)][id] = 0.5;
+            }
+        }
+        for (clause_id id : visited_clauses)
             vis_clause[id] = false, is_leaf[id] = false;
         for (var v : visited_vars)
             vis_var[v] = false;
@@ -57,8 +65,6 @@ public:
         T_bar.resize(M + 1), T.resize(M + 1);
         var_1.resize(N + 1), var_0.resize(N + 1);
         this->cnf = cnf;
-        for (var v = 1; v <= N; v++)
-            var_to_clauses.clear();
         BeliefPropagation::init(cnf);
     }
 
@@ -94,10 +100,14 @@ public:
 
     void variable_BP(int v, int depth)
     {
+        if (depth == 0)
+            return;
         vis_var[v] = true;
         visited_vars.push_back(v);
+        // cout << v << endl;
         update_var(v);
-        for (clause_id id : var_to_clauses[v])
+        // cout << v << " post update" << endl;
+        for (clause_id id : cnf->var_to_clauses[v])
         {
             if (!vis_clause[id])
             {
@@ -220,22 +230,31 @@ public:
                 int samples = 5;
                 int v = cnf->next_rand_var();
                 double prob0 = 0.0, prob1 = 0.0;
+                double prob0bp = 0.0, prob1bp = 0.0;
                 for (int i = 0; i < samples; i++)
                 {
                     smart_toggle_off();
                     variable_DFS(v, 2);
                     prob0 += var_0[v];
                     prob1 += var_1[v];
+                    smart_toggle_off();
+                    variable_BP(v, 2);
+                    auto p = extract_marginal(v);
+                    prob0bp = p.first;
+                    prob1bp = p.second;
                 }
                 Propagation();
                 cout << "Tvar: " << v << endl;
-                cout << "prob0: " << prob0 << " " << exp(prob0) << endl;
-                cout << "prob1: " << prob1 << " " << exp(prob1) << endl;
+                cout << "prob0: " << prob0 << endl;
+                cout << "prob1: " << prob1 << endl;
+                cout << "BPvar" << endl;
+                cout << "prob0: " << prob0bp << endl;
+                cout << "prob1: " << prob1bp << endl;
                 pair<double, double> p = extract_marginal(v);
                 cout << "Bvar: " << v << endl;
-                cout << "prob0: " << p.second << endl;
-                cout << "prob1: " << p.first << endl;
-                bool differ = (prob0 < prob1) ^ (p.second < p.first);
+                cout << "prob0: " << p.first << endl;
+                cout << "prob1: " << p.second << endl;
+                bool differ = (prob0 < prob1) ^ (p.first < p.second);
                 cout << differ << endl;
                 differs.add(differ);
                 //   cnf->print();

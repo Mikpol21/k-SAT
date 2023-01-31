@@ -41,11 +41,13 @@ public:
         vars_visited.add(visited_vars.size());
         clauses_visited.add(visited_clauses.size());
         for (clause_id id : visited_clauses)
+            vis_clause[id] = false, is_leaf[id] = false;
+        /*for (clause_id id = 0; id < cnf->M; id++)
         {
             vis_clause[id] = false, is_leaf[id] = false;
             for (int v : cnf->clauses[id])
                 U[id][abs(v)] = 0.0, H[abs(v)][id] = 0.5;
-        }
+        }*/
         for (var v : visited_vars)
             vis_var[v] = false;
         visited_clauses.clear();
@@ -101,6 +103,8 @@ public:
 
     void variable_BP(int v, int depth = 3000)
     {
+        if (depth == 0)
+            return;
         vis_var[v] = true;
         visited_vars.push_back(v);
         // out << var_to_clauses[v].size() << endl;
@@ -214,11 +218,13 @@ public:
         }
         return double(assignments) / double(1 << (N - 1));
     }
-    StatsKeeper differs = StatsKeeper("differs");
+    StatsKeeper differs = StatsKeeper("differs BPT");
+    StatsKeeper differs2 = StatsKeeper("differs LT");
     bool solve(CNF *cnf) override
     {
         init(cnf);
         double average_diff = 0.0;
+        Propagation(200);
         for (int i = 0; i < cnf->N; i++)
         {
             int id = get_unit_clause();
@@ -235,39 +241,49 @@ public:
                 for (int i = 0; i < samples; i++)
                 {
                     smart_toggle_off();
-                    variable_BP(v);
+                    variable_BP(v, 3);
                     auto p = extract_marginal(v);
-                    prob0 += p.second;
-                    prob1 += p.first;
+                    prob0 += p.first;
+                    prob1 += p.second;
                 }
-                // Propagation();
-                // auto p = extract_marginal(v);
-                // prob0 /= samples;
-                // prob1 /= samples;
-                // average_diff += (prob0 - p.second) * (prob0 - p.second);
-                // average_diff += (prob1 - p.first) * (prob1 - p.first);
-                //  cout << "Tvar: " << v << endl;
-                //  cout << "prob0: " << prob0 << endl;
-                //  cout << "prob1: " << prob1 << endl;
-                //   pair<double, double> p = extract_marginal(v);
-                //  cout << "Bvar: " << v << endl;
-                //  cout << "prob0: " << p.second << endl;
-                //  cout << "prob1: " << p.first << endl;
-                // bool differ = (prob0 < prob1) ^ (p.second < p.first);
-                // cout << differ << endl;
-                // differs.add(differ);
+                smart_toggle_off();
+                /*prob0 /= samples;
+                prob1 /= samples;
+                cout << "BPTvar: " << v << endl;
+                cout << "prob0: " << prob0 << endl;
+                cout << "prob1: " << prob1 << endl;
+                variable_DFS(v, 4);
+                double prob0l = var_0[abs(v)], prob1l = var_1[abs(v)];
+                cout << "LTvar: " << v << endl;
+                cout << "prob0: " << prob0l << endl;
+                cout << "prob1: " << prob1l << endl;
+                Propagation();
+                pair<double, double> p = extract_marginal(v);
+                cout << "BPvar: " << v << endl;
+                cout << "prob0: " << p.first << endl;
+                cout << "prob1: " << p.second << endl;
+                average_diff += (prob0 - p.second) * (prob0 - p.second);
+                average_diff += (prob1 - p.first) * (prob1 - p.first);
+                bool differ = (prob0 < prob1) ^ (p.first < p.second);
+                bool differ2 = (prob0l < prob1l) ^ (p.first < p.second);
+                cout << differ << " - " << differ2 << endl;
+                differs.add(differ);
+                differs2.add(differ2);
+                */
                 // cnf->print();
 
-                if (prob0 > prob1)
+                if (prob0 < prob1)
                     satisfy(v);
                 else
                     satisfy(-v);
             }
         }
+        // differs.print();
+        // differs2.print();
         // cout << average_diff / (cnf->N * 2) << endl;
-        //  vars_visited.print();
-        //  clauses_visited.print();
-        //  differs.print();
+        //   vars_visited.print();
+        //   clauses_visited.print();
+        //   differs.print();
         return cnf->is_satisfied();
     }
 };
