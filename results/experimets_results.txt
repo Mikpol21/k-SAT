@@ -53,6 +53,7 @@ Tree BP:
 with BP preprocessing
 3-SAT
 3.3;0.86;50000;50; (J -> 0.54, depth = 2)
+3.5;0.5;50000;50 (J -> 0.54, d = 2)
 
 
 BP
