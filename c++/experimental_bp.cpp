@@ -11,8 +11,10 @@ public:
         // cout << "initialized" << endl;
         StatsKeeper stats("BP iterations");
 
-        int rate = sqrt(cnf->N);
-        int t = rate;
+        float rate = 0.04;
+        // int rate = sqrt(cnf->N);
+        int t = rate * float(cnf->N);
+        // int t = rate;
         priority_queue<pair<double, int>> marginals;
         for (int i = 0; i < cnf->N; i++, t++)
         {
@@ -24,9 +26,10 @@ public:
                 satisfy(x);
             else
             {
-                if (t >= rate)
+                if (t >= int(rate * float(cnf->N - i)))
                 {
-                    // cout << i << endl;
+                    // cout << t << " " << i << endl;
+                    //  cout << i << endl;
                     t = 0;
                     // cout << i << " " << t << " " << rate << endl;
                     Propagation();
