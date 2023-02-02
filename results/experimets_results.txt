@@ -107,6 +107,9 @@ ratio;satisfied;tests;N
 4.2;0.04;50;10000;40 (every 100 fixes)
 4.2;0.0;50;10000;58 (fixing 4% of rest)
 4.2;0.0;10;10000;50 (fixing 1% of rest)
+BP + SP
+3-SAT
+4.2;0.1;10000;20
 Johnson
 4-SAT
 ratio;satisfied;tests;N
