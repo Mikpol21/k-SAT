@@ -9,6 +9,8 @@
 #include "experimental_bp.cpp"
 #include "prob_rec.cpp"
 #include "belief_tree.cpp"
+#include "SP.cpp"
+#include "batch_sp.cpp"
 #include <chrono>
 using namespace std;
 using namespace std::chrono;
@@ -35,6 +37,11 @@ SAT_solver *get_solver(string name)
         return new TreeSAT();
     if (name == "TBP")
         return new TreeBP();
+    if (name == "SP")
+        return new SurveryPropagation();
+    if (name == "BSP")
+        return new BatchSP();
+
     return nullptr;
 }
 

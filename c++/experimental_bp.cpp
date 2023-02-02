@@ -49,6 +49,7 @@ public:
                 if (marginals.empty())
                     break;
                 x_opt = marginals.top().second;
+                // cout << "x_opt: " << x_opt << " -> " << marginals.top().first << endl;
                 marginals.pop();
                 satisfy(x_opt);
             }

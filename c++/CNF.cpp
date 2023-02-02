@@ -131,6 +131,8 @@ public:
     }
     void satisfy(int x)
     {
+        if (is_erased(x))
+            return;
         erase_var(x);
         for (clause_id id : var_to_clauses[lit(x)])
         {

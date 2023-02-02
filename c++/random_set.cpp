@@ -1,3 +1,4 @@
+#pragma once
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -13,7 +14,7 @@ public:
             N *= 2;
         this->n = n;
         assert(n <= N);
-        S.resize(N * 2);
+        S.resize(N * 2 + 1);
         for (int i = 0; i <= N * 2; i++)
             S[i] = 0;
     }
@@ -25,8 +26,9 @@ public:
         int node = x + N;
         while (node > 0)
         {
+            // cout << node << endl;
             S[node]++;
-            node = node >> 1;
+            node /= 2;
         }
     }
 
@@ -39,24 +41,24 @@ public:
         while (node > 0)
         {
             S[node]--;
-            node = node >> 1;
+            node /= 2;
         }
     }
     bool contains(int x)
     {
         return S[x + N] == 1;
     }
-    bool size()
+    int size()
     {
         return S[1];
     }
     int get_random()
     {
-        int r = rand() % S[1] + 1;
+        int r = (rand() % S[1]) + 1;
         int node = 1;
         while (node < N)
         {
-            node = node << 1;
+            node *= 2;
             if (S[node] < r)
                 r -= S[node], ++node;
         }

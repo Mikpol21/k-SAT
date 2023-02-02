@@ -169,7 +169,7 @@ protected:
                 previous_signal[x] = new_signal;
             }
             // cout << max_diff << endl;
-            if (max_diff <= 1e-5)
+            if (max_diff <= 1e-3)
                 break;
         }
         // cout << max_diff << " " << i << endl;

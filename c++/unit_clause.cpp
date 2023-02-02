@@ -43,7 +43,7 @@ protected:
     void init(CNF *cnf)
     {
         this->cnf = cnf;
-        assignment.clear();
+        // assignment.clear();
         assignment.resize(cnf->N + 1);
         erased_clauses.resize(cnf->M);
         for (int i = 0; i < cnf->M; i++)
