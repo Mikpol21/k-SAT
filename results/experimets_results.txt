@@ -120,3 +120,10 @@ ratio;satisfied;tests;N
 7.25;0.34;50;20000
 7.5;0.00;50;20000
 
+SP (with BP)
+Running 20000 4.21
+Iterations 32, nearly no variance (28 - 34)
+unning Bp with 9788 vars left
+Done with 23367 not sat clauses
+result of bp: 1
+4 satisfied instances

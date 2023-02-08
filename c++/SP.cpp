@@ -78,11 +78,25 @@ protected:
 
     void update_clause(const clause_id a)
     {
-        double product = 1.;
         for (var v : cnf->clauses[a])
-            product *= PI[abs(v)][a];
-        for (var v : cnf->clauses[a])
-            eta[a][abs(v)] = 1. - product / PI[abs(v)][a];
+        {
+            double product = 1.;
+            for (var v2 : cnf->clauses[a])
+                if (v2 != v)
+                    product *= PI[abs(v2)][a];
+            eta[a][abs(v)] = 1. - product;
+            /*if (isnan(eta[a][abs(v)]))
+            {
+                cout << "nan error" << endl;
+                cout << v << ": " << PI[abs(v)][a] << " " << product << endl;
+                for (var v : cnf->clauses[a])
+                {
+                    cout << v << " -> " << PI[abs(v)][a] << " ";
+                }
+                cout << endl;
+                exit(0);
+            }*/
+        }
     }
 
     void update()
@@ -92,7 +106,12 @@ protected:
             if (p.first)
             {
                 clause_id a = p.second;
-                if (cnf->clauses[a].size() <= 1)
+                if (cnf->clauses[a].size() == 1)
+                {
+                    assert(cnf->clauses[a][0] == SATISFIED);
+                    continue;
+                }
+                if (cnf->clauses[a].size() == 0)
                     continue;
                 else
                     update_clause(p.second);
@@ -101,7 +120,7 @@ protected:
                 update_var(p.second);
     }
 
-    int Propagation(const int max_iter = 1000)
+    int Propagation(bool debug = false, const int max_iter = 1000)
     {
         const double accuracy = 1e-3;
         vector<unordered_map<int, double>> eta_old = eta;
@@ -109,6 +128,12 @@ protected:
         for (iter = 0; iter < max_iter; iter++)
         {
             update();
+            if (debug)
+            {
+                print_state();
+                int n;
+                cin >> n;
+            }
             double max_error = 0;
             for (clause_id a = 0; a < cnf->M; a++)
                 for (var v : cnf->clauses[a])
@@ -118,6 +143,22 @@ protected:
             eta_old = eta;
         }
         return iter;
+    }
+
+    void print_state()
+    {
+        for (clause_id a = 0; a < cnf->M; a++)
+        {
+            cout << "clause " << a << endl;
+            cout << "etas : ";
+            for (var v : cnf->clauses[a])
+                cout << v << " -> " << eta[a][abs(v)] << " ";
+            cout << endl;
+            cout << "PIs : ";
+            for (var v : cnf->clauses[a])
+                cout << v << " -> " << PI[abs(v)][a] << " ";
+            cout << endl;
+        }
     }
 
     /*
@@ -134,11 +175,23 @@ protected:
                 negatives *= eta[a][v];
         }
         double p, n, o;
+
         // cout << "positives = " << positives << endl;
         // cout << "negatives = " << negatives << endl;
         n = (1 - negatives) * positives;
         p = (1 - positives) * negatives;
         o = positives * negatives;
+        /*if (p + n < 1e-3)
+        {
+            cout << v << ": " << p << " " << n << " " << o << endl;
+            for (auto a : cnf->var_to_clauses[v])
+            {
+                cout << a << ": ";
+                for (auto v2 : cnf->clauses[a])
+                    cout << v2 << " ";
+                cout << endl;
+            }
+        }*/
         return {n / (n + p + o), p / (n + p + o)};
     }
 
@@ -152,7 +205,7 @@ public:
     {
         init(cnf);
         int t = 0;
-        float rate = 0.04;
+        float rate = 0.01;
         for (int i = 0; i < cnf->N; i++)
         {
             int id = get_unit_clause();

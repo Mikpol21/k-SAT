@@ -23,6 +23,7 @@ public:
     {
         if (S[x + N] == 1)
             return;
+        assert(S[x + N] == 0);
         int node = x + N;
         while (node > 0)
         {
@@ -37,6 +38,7 @@ public:
         assert(x + N <= 2 * N);
         if (S[x + N] == 0)
             return;
+        assert(S[x + N] == 1);
         int node = x + N;
         while (node > 0)
         {
@@ -59,9 +61,14 @@ public:
         while (node < N)
         {
             node *= 2;
+            // cout << node / 2 << ": " << S[node] << "/" << S[node + 1] << endl;
             if (S[node] < r)
-                r -= S[node], ++node;
+            {
+                r -= S[node];
+                node++;
+            }
         }
+        assert(S[node] == 1);
         return node - N;
     }
     void print()

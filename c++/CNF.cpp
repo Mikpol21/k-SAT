@@ -157,11 +157,12 @@ public:
     int not_satisfied = 0;
     bool is_satisfied()
     {
+        not_satisfied = 0;
         for (clause &C : clauses)
         {
             // assert(C.size() <= 1);
             // assert(C.size() == 0 || C[0] == SATISFIED);
-            if (C.size() == 0)
+            if (C.size() == 0 || (C[0] != SATISFIED))
                 not_satisfied++;
         }
         // cout << "Found " << not_satisfied << " not satisfied clauses" << endl;
