@@ -131,3 +131,4 @@ result of bp: 1
 25000 4.22
 Iterations 65
 Unsat, 1 clause (switched after half of vars)
+0/4 sat, 2 unsat avg
