@@ -132,3 +132,9 @@ result of bp: 1
 Iterations 65
 Unsat, 1 clause (switched after half of vars)
 0/4 sat, 2 unsat avg
+
+50000 4.22
+9/10 (1 unsat clause) 2522s
+
+100000 4.22
+4/7 (6 unsat) (0.04 rate) 3725s
