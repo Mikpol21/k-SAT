@@ -25,8 +25,8 @@ SAT_solver *get_solver(string name)
         return new Unit_Clause_With_Majority();
     if (name == "Johnson")
         return new Johnson_Heuristic();
-    if (name == "WalkSAT")
-        return new WalkSAT();
+    // if (name == "WalkSAT")
+    //     return new WalkSAT();
     if (name == "BP")
         return new BeliefPropagation();
     if (name == "PL")

@@ -2,6 +2,7 @@
 #include "SP.cpp"
 #include "random_set.cpp"
 #include "experimental_bp.cpp"
+#include "walksat.cpp"
 
 class BatchSP : public SurveryPropagation
 {
@@ -30,86 +31,6 @@ public:
         return "Batch SP";
     }
 
-    bool satisfied(clause const &C)
-    {
-        for (int x : C)
-            if (assignment[abs(x)] == (x > 0))
-                return true;
-        return false;
-    }
-
-    int run_walksat(vector<clause> const clauses, const int max_iter = 20)
-    {
-        RandomSet unsat_clauses = RandomSet(cnf->M);
-        for (clause_id a = 0; a < cnf->M; a++)
-        {
-            if (clauses[a].size() > 0 && clauses[a][0] != 0 && !satisfied(clauses[a]))
-                unsat_clauses.insert(a);
-        }
-        vector<vector<int>> var_to_clauses;
-        var_to_clauses.resize(cnf->N + 1);
-        for (clause_id a = 0; a < cnf->M; a++)
-        {
-            for (int x : clauses[a])
-            {
-                var_to_clauses[abs(x)].push_back(a);
-            }
-        }
-        int min_clauses = unsat_clauses.size();
-        cout << "Running WalkSAT with " << unsat_clauses.size() << " unsat clauses" << endl;
-        for (int iter = 0; iter < max_iter * cnf->N && unsat_clauses.size() > 0; iter++)
-        {
-            clause_id a = unsat_clauses.get_random();
-            min_clauses = min(min_clauses, (int)unsat_clauses.size());
-            // cnf->is_satisfied();
-            clause C = clauses[a];
-            int x = C[rand() % C.size()];
-            // assert(!satisfied(clauses[a]));
-            if (coin_flip()) // coin_flip())
-            {
-                int min_unsat = cnf->M;
-                int best_x = 0;
-                for (int v : C)
-                {
-                    assignment[abs(x)] = !assignment[abs(x)];
-                    int unsat = 0;
-                    for (clause_id jd : var_to_clauses[abs(v)])
-                    {
-                        if (!satisfied(clauses[jd]) && !unsat_clauses.contains(jd))
-                            unsat++;
-                    }
-                    if (unsat < min_unsat)
-                    {
-                        min_unsat = unsat;
-                        best_x = v;
-                    }
-                    assignment[abs(x)] = !assignment[abs(x)];
-                }
-                x = best_x;
-            }
-            int prv = unsat_clauses.size();
-            assignment[abs(x)] = !assignment[abs(x)];
-            int nxt = unsat_clauses.size();
-            if (prv != nxt)
-                cout << prv << " != " << nxt << endl;
-            for (clause_id jd : var_to_clauses[abs(x)])
-            {
-                if (!satisfied(clauses[jd]))
-                {
-                    unsat_clauses.insert(jd);
-                    assert(unsat_clauses.contains(jd));
-                }
-                else
-                {
-                    unsat_clauses.remove(jd);
-                    assert(!unsat_clauses.contains(jd));
-                }
-            }
-        }
-        min_clauses = min(min_clauses, (int)unsat_clauses.size());
-        return min_clauses;
-    }
-
     int PropagationAndBiases(priority_queue<pair<double, var>> &biases, bool debug = false)
     {
         while (!biases.empty())
@@ -126,48 +47,44 @@ public:
 
     bool run_bp()
     {
+        cout << "Running BP" << endl;
         bp.assignment = this->assignment;
         bool res = bp.solve(cnf);
         this->assignment = bp.assignment;
-        cout << "result of bp: " << res << endl;
+        cout << "Unsat clauses: " << cnf->not_satisfied << endl;
         return res;
     }
 
-    bool run_multiple_walksats(vector<clause> const clauses)
+    bool run_walksat(const vector<clause> &clauses, vector<bool> seed = vector<bool>())
     {
-        for (int i = 0; i < 20; i++)
-        {
-            vector<bool> assignment_backup = this->assignment;
-            for (var v = 1; v <= cnf->N; v++)
-                if (!cnf->is_erased(v))
-                    assignment[v] = coin_flip();
-            cnf->is_satisfied();
-            int cl = run_walksat(clauses);
-            if (cl == 0)
-            {
-                cout << "Found solution" << endl;
-                return true;
-            }
-            // this->assignment = assignment_backup;
-            cout << "Ended with " << cl << endl;
-        }
-        return false;
+        WalkSAT ws = WalkSAT(50 * cnf->N, 30, false);
+        cout << "Running walksat" << endl;
+        int unsat;
+        if (!seed.empty())
+            unsat = ws.solve(clauses, cnf->M, cnf->N, seed);
+        else
+            unsat = ws.solve(clauses, cnf->M, cnf->N);
+        for (var v = 1; v <= cnf->N; v++)
+            if (!cnf->is_erased(v))
+                this->assignment[v] = ws.assignment[v];
+        cout << "Unsat clauses: " << unsat << endl;
+        return unsat == 0;
     }
 
     bool exit_process()
     {
         bool res = cnf->is_satisfied();
         vector<clause> clauses_pre_bp = cnf->clauses;
-        cout << "Done with " << cnf->not_satisfied << " not sat clauses" << endl;
+        cout << "Left with " << cnf->not_satisfied << " unat clauses" << endl;
+        print_clause_dist();
         if (cnf->is_satisfied())
             return true;
-        bool bp_run = true;
+        bool bp_run = false;
         if (bp_run)
             res = run_bp();
         else
-            res = 0 == run_multiple_walksats(clauses_pre_bp);
-        assert(res == cnf->is_satisfied());
-        cout << "Done with " << cnf->not_satisfied << " not sat clauses" << endl;
+            res = run_walksat(cnf->clauses);
+        cout << "Satisfied: " << res << endl;
         return res;
     }
 
@@ -176,7 +93,7 @@ public:
         init(cnf);
         int t = cnf->N;
         int max_restarts = 0;
-        float rate = 0.01;
+        float rate = 0.04;
         priority_queue<pair<double, var>> biases;
         for (int i = 0; i < cnf->N; i++, t++)
         {
@@ -191,21 +108,21 @@ public:
                 if (t >= rate * (cnf->N - i))
                 {
                     t = 0;
-                    cout << "Propagation with " << PropagationAndBiases(biases) << " iterations" << endl;
-                    print_clause_dist();
-                    cout << "Vars left: " << cnf->N - i << endl;
-                    cout << "top bias: " << biases.top().first << endl;
+                    PropagationAndBiases(biases);
+                    // cout << "Propagation with " << PropagationAndBiases(biases) << " iterations" << endl;
+                    // print_clause_dist();
+                    // cout << "Vars left: " << cnf->N - i << endl;
+                    // cout << "top bias: " << biases.top().first << endl;
                 }
                 while (!biases.empty() && cnf->is_erased(biases.top().second))
                     biases.pop();
                 if (biases.empty())
                     break;
                 int v_opt = biases.top().second;
-                // cout << "Satisfying " << v_opt << endl;
                 auto b = bias(v_opt);
                 if (biases.top().first < 0.1 || (b.first == 0 && b.second == 0))
                 {
-                    cout << "Running Bp with " << cnf->N - i << " vars left" << endl;
+                    cout << "\nSP concluded with " << cnf->N - i << " vars left" << endl;
                     return exit_process();
                 }
 
@@ -214,7 +131,6 @@ public:
                     satisfy(v_opt);
                 else
                     satisfy(-v_opt);
-                // cnf->print();
             }
         }
         return cnf->is_satisfied();
