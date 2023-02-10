@@ -11,7 +11,7 @@ public:
         // cout << "initialized" << endl;
         StatsKeeper stats("BP iterations");
 
-        float rate = 0.01;
+        float rate = 0.04;
         // int rate = sqrt(cnf->N);
         int t = rate * float(cnf->N);
         // int t = rate;

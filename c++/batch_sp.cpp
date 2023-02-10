@@ -57,7 +57,7 @@ public:
 
     bool run_walksat(const vector<clause> &clauses, vector<bool> seed = vector<bool>())
     {
-        WalkSAT ws = WalkSAT(50 * cnf->N, 30, false);
+        WalkSAT ws = WalkSAT(10 * cnf->N, 150, false);
         cout << "Running walksat" << endl;
         int unsat;
         if (!seed.empty())
@@ -66,13 +66,19 @@ public:
             unsat = ws.solve(clauses, cnf->M, cnf->N);
         for (var v = 1; v <= cnf->N; v++)
             if (!cnf->is_erased(v))
-                this->assignment[v] = ws.assignment[v];
+                assignment[v] = ws.assignment[v];
         cout << "Unsat clauses: " << unsat << endl;
         return unsat == 0;
     }
 
     bool exit_process()
     {
+        for (int i = 0; i < cnf->M; i++)
+            if (cnf->clauses[i].size() == 0)
+            {
+                cout << "Found empty clause";
+                return false;
+            }
         bool res = cnf->is_satisfied();
         vector<clause> clauses_pre_bp = cnf->clauses;
         cout << "Left with " << cnf->not_satisfied << " unat clauses" << endl;
@@ -80,7 +86,16 @@ public:
         if (cnf->is_satisfied())
             return true;
         bool bp_run = false;
-        if (bp_run)
+        bool walksat_after_bp = true;
+        if (walksat_after_bp)
+        {
+            vector<clause> clauses_copy = cnf->clauses;
+            res = run_bp();
+            cout << "BP concluded with " << cnf->not_satisfied << " unsat clauses" << endl;
+            if (!res)
+                res = run_walksat(clauses_copy, assignment);
+        }
+        else if (bp_run)
             res = run_bp();
         else
             res = run_walksat(cnf->clauses);
