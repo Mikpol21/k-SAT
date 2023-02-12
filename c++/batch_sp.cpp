@@ -57,16 +57,18 @@ public:
 
     bool run_walksat(const vector<clause> &clauses, vector<bool> seed = vector<bool>())
     {
-        WalkSAT ws = WalkSAT(10 * cnf->N, 150, false);
+        WalkSAT ws = WalkSAT(20 * cnf->N, 500, false);
         cout << "Running walksat" << endl;
         int unsat;
         if (!seed.empty())
             unsat = ws.solve(clauses, cnf->M, cnf->N, seed);
         else
             unsat = ws.solve(clauses, cnf->M, cnf->N);
-        for (var v = 1; v <= cnf->N; v++)
+        /*for (var v = 1; v <= cnf->N; v++)
             if (!cnf->is_erased(v))
                 assignment[v] = ws.assignment[v];
+        */
+        assignment = ws.assignment;
         cout << "Unsat clauses: " << unsat << endl;
         return unsat == 0;
     }

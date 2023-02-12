@@ -129,7 +129,11 @@ public:
                 best_assignment = assignment;
             }
             if (min_unsat_clauses == 0)
+            {
+                for (clause_id a = 0; a < M; a++)
+                    assert((clauses[a].size() == 1 && clauses[a][0] == 0) || satisfied(clauses[a]));
                 return 0;
+            }
         }
         assignment = best_assignment;
         return min_unsat_clauses;
