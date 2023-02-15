@@ -1,0 +1,21 @@
+\begin{thebibliography}{1}
+
+\bibitem{satdiffeq}
+Dimitris Achlioptas.
+\newblock Lower bounds for random 3-sat via differential equations.
+\newblock {\em Theoretical Computer Science}, 265(1):159--185, 2001.
+\newblock Phase Transitions in Combinatorial Problems.
+
+\bibitem{pureliteral}
+E.~Upfal A.Z.~Broder, A.M.~Frieze.
+\newblock On the satis,ability and maximum satis,ability of random 3-cnf
+  formulas.
+\newblock {\em Annual ACM-SIAM Symp. on Discrete Algorithms}, 4th, 1993.
+
+\bibitem{2satratio}
+V.~Chvatal and B.~Reed.
+\newblock Mick gets some (the odds are on his side) (satisfiability).
+\newblock In {\em Proceedings., 33rd Annual Symposium on Foundations of
+  Computer Science}, pages 620--627, 1992.
+
+\end{thebibliography}

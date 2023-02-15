@@ -1,0 +1,100 @@
+\documentclass[10pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[ruled]{algorithm2e}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\begin{document}
+
+\section{Definitions and Notations}
+
+\section{Local Heuristics}
+\par
+% basis for 
+First of all, we are going to start by presenting the most common and 
+yet the simpliest local heuristics, namely Pure Literal (PL) and Unit Clause (UC). 
+Their behaviour can be described in terms of free and forced steps~\cite{satdiffeq}.
+More precisely, forced steps are those decisions that cannot go wrong, that is we can satisfy a certain variable, while preserving the satisfiability of the formula.
+On the other hand, free steps are those decisions that do not have these guarantees.
+%In the following sections, we will restrict ourserlves to the formulations of PL and UC, where in the free steps we choose a literal at random and satisfy it.
+
+\par
+The forced steps taken by the Pure Literal and Unit Clause are universally good, and that is why the combination of these two heuristics is basic ingredient of much more elaborate heuristics. More precisely, the more advanced heuristics make the forced steps of PL and UC, but make a better use of the free steps.
+
+
+\subsection{Pure Literal}
+\par
+First, let's call a literal $l$ \textit{pure}, if there is no clause containing $\neg l$. Observe that if given CNF $\phi$ contains a pure literal $l$, then we can satisfy $l$ in $\phi$ without changing the satisfiability of $\phi$, because we delete all occurances of $var(l)$ from $\phi$, which results in a less constrained formula.
+This observation is the driving factor behind the Pure Literal heuristic, which is presented in Algorithm~\ref{alg:pl}. 
+\par
+%seems raw
+Broder et al.~\cite{pureliteral} showed that the Pure literal almost surely succeeds in finding a satisfying assignment when the ratio of clauses to variables is $\alpha \le 1.63$. 
+\begin{algorithm}
+\caption{Pure Literal Heuristic}\label{alg:pl}
+\KwIn{A k-SAT formula $\phi$}
+\KwOut{\textit{True} if $\phi$ is satisfiable, \textit{False} otherwise}
+\While{$Vars(\phi) \neq \emptyset$}{
+    \eIf{exists pure literal $l$}{
+        \tcp{Forced Step}
+        satisfy $l$ in $\phi$\; 
+    }{
+        \tcp{Free Step}
+        $x \gets$ randomly chosen variable in $\phi$ \;
+        choose uniformly at random $l \in \{x, \neg x\}$ and satisfy it in $\phi$\; 
+    }
+}
+\eIf{$\phi$ contains empty clause}{
+    \Return{\textit{False}}
+}{
+    \Return{\textit{True}}
+}
+
+
+\end{algorithm}
+
+
+
+\subsection{Unit Clause}
+Simirarly to PL, UC exploits a very simple observation. Namely, if any clause $C$ contains only one literal $l$, then any satisfying assignment to $\phi$ must satisfy $l$, otherwise it would contain an empty clause, yielding an unsatisfiable formula. The algorithm for UC is presented below:
+\begin{algorithm}
+\caption{Unit Clause Heuristic}\label{alg:uc}
+\KwIn{A k-SAT formula $\phi$}
+\KwOut{\textit{True} if $\phi$ is satisfiable, \textit{False} otherwise}
+\While{$Vars(\phi) \neq \emptyset$}{
+    \eIf{$\phi$ contains unit clause $\{l\}$}{
+        \tcp{Forced Step}
+        satisfy $l$ in $\phi$\; 
+    }{
+        \tcp{Free Step}
+        $x \gets$ randomly chosen variable in $\phi$ \;
+        choose uniformly at random $l \in \{x, \neg x\}$ and satisfy it in $\phi$\; 
+    }
+}
+\eIf{$\phi$ contains empty clause}{
+    \Return{\textit{False}}
+}{
+    \Return{\textit{True}}
+}
+\end{algorithm}
+\subsubsection*{Analysis}
+%framework for heuristics that can be described as the card game
+%analysis of UC on 4-SAT
+Despite the simplicity of the UC heuristic, the analysis of its performance on random k-SAT formulas is far from trivial. Achlioptas~\cite{satdiffeq} presents a very elegant framework for analysing the performance of a family of heuristics that includes UC\@. In the following section, we will present the framework by applying it to the UC heuristic on random 4-SAT formula.
+\par
+First, we present a crucial theorem that is the centre of the whole framework, which was proved by Chvatal and Reed~\cite{2satratio}.
+\begin{theorem}\label{lem:chvatal}
+    For any random 2-SAT formula F with $N$ variables and $\alpha N$ clauses, where $N$ tends to infinity, F is satisfiable with probability $1 - o(1)$ for $\alpha < 1$, and F is unsatisfiable with probability $1 - o(1)$ for $\alpha > 1$.
+\end{theorem}
+Above theorem implies that if at any point during the runtime of the algorithm the density of clauses of size 2 is more than 1, then the formula is w.h.p.\  unsatisfiable.
+Our analysis will focus on finding the ratio $\alpha$, for which we can guarantee that at any point the density of underlying 2-SAT formula is less than 1.
+%ChvGatal and Reed
+%Goerdt [23]
+%W. Fernandez de la Vega, On random 2-SAT, 1992, Manuscript. [18]
+
+\bibliographystyle{plain}
+\bibliography{refs}{}
+
+\end{document}
