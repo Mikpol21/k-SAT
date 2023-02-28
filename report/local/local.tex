@@ -43,7 +43,7 @@ Broder et al.~\cite{pureliteral} showed that the Pure literal almost surely succ
     }{
         \tcp{Free Step}
         $x \gets$ randomly chosen variable in $\phi$ \;
-        choose uniformly at random $l \in \{x, \neg x\}$ and satisfy it in $\phi$\; 
+        Choose uniformly at random $l \in \{x, \neg x\}$ and satisfy it in $\phi$\; 
     }
 }
 \eIf{$\phi$ contains empty clause}{
@@ -51,10 +51,9 @@ Broder et al.~\cite{pureliteral} showed that the Pure literal almost surely succ
 }{
     \Return{\textit{True}}
 }
-
-
 \end{algorithm}
-
+\par
+The above algorithm runs in time $O(N k \alpha)$, as the existence of pure literal can be checked in $O(1)$ by maintaining for each variable $x$ the number of clauses containing $x$ and $\neg x$. Moreoever, pruning $\phi$ after satysfying a variable, amortizes to $O(k \alpha)$ per iteration.
 
 
 \subsection{Unit Clause}
@@ -79,6 +78,7 @@ Simirarly to PL, UC exploits a very simple observation. Namely, if any clause $C
     \Return{\textit{True}}
 }
 \end{algorithm}
+\par Similarly to PL, UC runs in time $O(N k \alpha)$, beacause after satisfying a varaible $x$, the only new clauses are the ones that previously contained $x$. Therefore, the detection of new unit clauses amortizes to $O(k \alpha)$.
 \subsubsection*{Analysis}
 %framework for heuristics that can be described as the card game
 %analysis of UC on 4-SAT
