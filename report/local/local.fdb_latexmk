@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex local"] 1677587601 "local.aux" "local.bbl" "local" 1677587626 0
-  "../refs.bib" 1676481281 1868 137b5373c00e8930c66beae3a0b3766e ""
+["bibtex local"] 1677593340 "local.aux" "local.bbl" "local" 1677593340 0
+  "../refs.bib" 1677593324 3257 c5fb0dd9f6dd43ae565ac3d174cf9d6a ""
   "/usr/local/texlive/2022/texmf-dist/bibtex/bst/base/plain.bst" 1292289607 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
   "local.aux" 1677587625 1097 2e0897c59813e3aad874b2ecf3afedc8 "pdflatex"
   (generated)
   "local.bbl"
   "local.blg"
   (rewritten before read)
-["pdflatex"] 1677587625 "/home/mikoaj/Projects/k-SAT/report/local/local.tex" "local.pdf" "local" 1677587626 0
-  "/home/mikoaj/Projects/k-SAT/report/local/local.tex" 1677587625 10049 da314305f8c0b55839021333de38b432 ""
+["pdflatex"] 1677587625 "/home/mikoaj/Projects/k-SAT/report/local/local.tex" "local.pdf" "local" 1677593340 0
+  "/home/mikoaj/Projects/k-SAT/report/local/local.tex" 1677593340 10049 da314305f8c0b55839021333de38b432 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -62,8 +62,8 @@
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1676470467 7879235 1491aaa1ffdab3823d824d8289a27205 ""
   "/usr/local/texlive/2022/texmf.cnf" 1676470358 455 5b996dcaa0eb4ef14a83b026bc0a008c ""
   "local.aux" 1677587625 1097 2e0897c59813e3aad874b2ecf3afedc8 "pdflatex"
-  "local.bbl" 1677587601 730 c336e4c90d04fa4ae195a8b531d23d6a "bibtex local"
-  "local.tex" 1677587625 10049 da314305f8c0b55839021333de38b432 ""
+  "local.bbl" 1677593340 730 c336e4c90d04fa4ae195a8b531d23d6a "bibtex local"
+  "local.tex" 1677593340 10049 da314305f8c0b55839021333de38b432 ""
   (generated)
   "local.aux"
   "local.log"

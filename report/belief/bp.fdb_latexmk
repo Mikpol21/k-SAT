@@ -1,6 +1,14 @@
 # Fdb version 4
-["pdflatex"] 1677589333 "/home/mikoaj/Projects/k-SAT/report/belief/bp.tex" "bp.pdf" "bp" 1677589334 0
-  "/home/mikoaj/Projects/k-SAT/report/belief/bp.tex" 1677589333 6213 ae0a83cf80fa9d52d2378e232ca12a22 ""
+["bibtex bp"] 1677594510 "bp.aux" "bp.bbl" "bp" 1677596204 0
+  "../refs.bib" 1677594524 3257 c5fb0dd9f6dd43ae565ac3d174cf9d6a ""
+  "/usr/local/texlive/2022/texmf-dist/bibtex/bst/base/plain.bst" 1292289607 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
+  "bp.aux" 1677596204 853 34368978d4439decf4184f31ca4bfc15 "pdflatex"
+  (generated)
+  "bp.bbl"
+  "bp.blg"
+  (rewritten before read)
+["pdflatex"] 1677596203 "/home/mikoaj/Projects/k-SAT/report/belief/bp.tex" "bp.pdf" "bp" 1677596204 0
+  "/home/mikoaj/Projects/k-SAT/report/belief/bp.tex" 1677596204 6502 ef95f9423eec507873225b39bc971309 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1246382020 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -61,8 +69,9 @@
   "/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1676470363 4623355 58034c3eb7ddf7eacc726a83d01e26d2 ""
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1676470467 7879235 1491aaa1ffdab3823d824d8289a27205 ""
   "/usr/local/texlive/2022/texmf.cnf" 1676470358 455 5b996dcaa0eb4ef14a83b026bc0a008c ""
-  "bp.aux" 1677589334 694 27bd00dc32ad482c35536e6b7803cec3 "pdflatex"
-  "bp.tex" 1677589333 6213 ae0a83cf80fa9d52d2378e232ca12a22 ""
+  "bp.aux" 1677596204 853 34368978d4439decf4184f31ca4bfc15 "pdflatex"
+  "bp.bbl" 1677594510 414 a9334bfffefbbee45c74ee3ec029b8d3 "bibtex bp"
+  "bp.tex" 1677596204 6502 ef95f9423eec507873225b39bc971309 ""
   (generated)
   "bp.aux"
   "bp.log"

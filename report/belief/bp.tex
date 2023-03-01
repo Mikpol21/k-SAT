@@ -21,10 +21,15 @@ separator symbol =;,
 \usepackage[a4paper, total={6in, 8in}]{geometry}
 \begin{document}
 \section{Global Heuristics}
-In the previous section we demonstrated local heuristics, that can be very efficiently implemented and one can rigorously analyze them. However, this benefits come with a cost of a significantly weaker performance on larger ratios of clauses to variables. In this section, we will present global heuristics, algorithms that in their free steps make decisions motivated by a global structure of the formula, rather than a local neighborhood. Currently, the most popular such heuristics are Belief Propagation (BP) and Survey Propagation (SP), both exhibiting a very good performance on large formulas with ratio close to the conjectured threshold of $4.2667$. (Citation needed)
-(Maybe where to they come from)
+
+
+In the previous section we demonstrated local heuristics, that can be very efficiently implemented and one can rigorously analyze them. However, this benefits come with a cost of a significantly weaker performance on larger ratios of clauses to variables. In this section, we will present global heuristics, algorithms that in their free steps make decisions motivated by a global structure of the formula, rather than a local neighborhood. Currently, the most popular such heuristics are Belief Propagation (BP) and Survey Propagation (SP), both exhibiting a very good performance on large formulas with ratio close to the conjectured threshold of $4.2667$.~\cite{survey_propagation}
+(Maybe where to they come from, physics itp)
+
+
 \section{Belief Propagation}
 First, let's define a uniform distribution over the set of all satysfying assignments of given 3-CNF $\phi$. Then, this distribution can be written down:
+
 \begin{equation}
 \label{eq:uniform}
 \mu(\mathcal{A}) = \frac{1}{Z} \mathcal{A} \dbrackets{\phi}
@@ -40,12 +45,13 @@ BP aims at computing marginals of this distribution, namely $\mu(\mathcal{A} \mi
     \numberthis \label{eq:message:u}
 \end{align}
 
-The message $\umsg{a}{i}{r}$ is usually interpreted as a warning sent from clause $a$ to variable $i$, and it informs variable $i$ how much do the other variables inside clause $a$ lean towards a polariry that violates $a$. With this interpretation in mind, the message $\hmsg{i}{a}{r}$ is treated as the probability that the variable $i$ satisfies the clause $a$.
+In fact, Belief Propagation is a much more general algorithm, that can be applied to other combinatorial problems (Need for citation), however, in this report we will restrict ourselves to the 3-SAT case, which yields the relations above. Then, the message $\umsg{a}{i}{r}$ is usually interpreted as a warning sent from clause $a$ to variable $i$, and it informs variable $i$ how much do the other variables inside clause $a$ lean towards a polariry that violates $a$. With this interpretation in mind, the message $\hmsg{i}{a}{r}$ is treated as the probability that the variable $i$ satisfies the clause $a$. 
 \par
-The algorithm is presented in Algorithm~\ref{alg:bp}. BP terminates when the messages converge, i.e.~when the messages do not change significantly between two consecutive rounds, or when the number of rounds exceeds some predefined limit referred to by $maxiter$. Afterwards, the approximation to the marginals is computed as follows:
+BP is presented in Algorithm~\ref{alg:bp}. BP terminates when the messages converge, i.e.~when the messages do not change significantly between two consecutive rounds, or when the number of rounds exceeds some predefined limit referred to by $maxiter$. Afterwards, the approximation to the marginals is computed as follows:
 \begin{equation}
     \mathcal{V}_x^r(b) = \frac{1}{2} \biggl(1 + {(-1)}^b \tanh \biggl\{ \sum_{a \in \partial_- i} \umsg{a}{i}{r} - \sum_{a \in \partial_+ i} \umsg{a}{i}{r} \biggr\} \biggr)
 \end{equation}
+
 
 \begin{algorithm}
     \caption{Belief Propagation}\label{alg:bp}
@@ -60,8 +66,9 @@ The algorithm is presented in Algorithm~\ref{alg:bp}. BP terminates when the mes
 \end{algorithm}
 
 \par
-While for trees BP converges to the exact marginals, for general graphs it only approximates it (Citation needed). However, in the limit $N \rightarrow \infty$ the underlaying graph tends to a random tree, which explains why the performance of BP scales with the number of variables.
-Still, it provides us with a useful insight to the structure of the satysfying assignments, that we can exploit to make more informed decisions in the free steps, which is depicted in the Algorithm\ref{alg:bpd}.
+While for trees BP converges to the exact marginals, for general graphs it only approximates it\cite{belief_propagation}. Still, it provides us with a useful insight to the structure of the satysfying assignments, that we can exploit to make more informed decisions in the free steps, which is depicted in the Algorithm\ref{alg:bpd}.
+
+
 \begin{algorithm}
 \caption{Belief Propagation Inspired Decimation}\label{alg:bpd}
 \KwIn{A k-SAT formula $\phi$}
@@ -77,13 +84,18 @@ Still, it provides us with a useful insight to the structure of the satysfying a
 }
 \end{algorithm}
 
+
 \subsection*{Time Complexity}
 From previous section about PC and UC, we know that the steps taken by these heuristics run in $O(N k \alpha)$, so we only need to analyze the complexity of Belief Propagation algorithm. First, we note that a single round of updates to the messages takes time $O(N k \alpha)$, as we need to essentially iterate over all clauses. Hence, BP runs in $O(r N k \alpha)$, where $r$ is the number of rounds. In fact, numerical experiments as well as theoretical considerations suggests that $r = O(\log N)$, which is motivated by the intuition that the expected distance between two nodes in our graph is $O(\log N)$. Hence, the overall time complexity of the heuristic is $O(N^2 k \alpha \log N)$.
 \par  
 In my implementation, I set $maxiter$ to $200$ and $\epsilon$ to $10^{-6}$. Moreover, instead of running BP on each free step, I run it only having satisfied $\lceil f * N_t \rceil$ varaibles since previous propagation. It boosts the time complexity to $O(N k \alpha \log^2 N)$, as BP is invoked only $O(\log N)$ times.
 
+\subsection*{Empirical Results and Their Analysis}
+In this section, I present the empirical results of BP on large instances of 3-SAT.
 
 
 
+\bibliographystyle{plain}
+\bibliography{../refs}{}
 
 \end{document}
