@@ -157,3 +157,7 @@ Unsat, 1 clause (switched after half of vars)
 
 100000 4.22
 4/7 (6 unsat) (0.04 rate) 3725s
+
+
+
+6/10 15
