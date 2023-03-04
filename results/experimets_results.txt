@@ -161,3 +161,7 @@ Unsat, 1 clause (switched after half of vars)
 
 
 6/10 15
+
+BPSP result HUGE
+4.21;10000;0.46;1.56
+
