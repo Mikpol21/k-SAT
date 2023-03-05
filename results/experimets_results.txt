@@ -164,4 +164,5 @@ Unsat, 1 clause (switched after half of vars)
 
 BPSP result HUGE
 4.21;10000;0.46;1.56
+4.22;10000;0.3;1.45
 
